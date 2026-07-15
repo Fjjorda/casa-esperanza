@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/casaesperanza}
+    username: ${DB_USER:BDcasa}
+    password: ${DB_PASSWORD:BDcasa}
+  jpa:
+    hibernate:
+      ddl-auto: update # Crea y actualiza las tablas a partir de tus @Entity
+    show-sql: true
+    open-in-view: false
+
+server:
+  port: 8080

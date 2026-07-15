@@ -1,0 +1,41 @@
+# ============================================================
+# CI Pipeline
+#
+# En cada push y en cada Pull Request a main, compila
+# el backend y ejecuta las pruebas contra un PostgreSQL efimero.
+# Si algo falla, el PR se marca en rojo y no debería fusionarse.
+#
+# Por ahora solo valida (no despliega): el job "deploy" se
+# añadirá cuando conectemos Render al final del desarrollo.
+# ============================================================
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres: # BD de usar y eliminar, solo para las pruebas pre-merging
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: casaesperanza_test
+          POSTGRES_USER: BDcasa
+          POSTGRES_PASSWORD: BDcasa
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U casa" --health-interval 10s
+          --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17', cache: maven }
+      - name: Pruebas
+        working-directory: backend
+        env:
+          DB_URL: jdbc:postgresql://localhost:5432/casaesperanza_test
+          DB_USER: casa
+          DB_PASSWORD: casa
+        run: mvn -B verify

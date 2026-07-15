@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16-alpine          # la "receta" de la caja: un Postgres listo
+    container_name: casaesperanza-db
+    environment:
+      POSTGRES_DB: casaesperanza       # nombre de la base de datos
+      POSTGRES_USER: BDcasa              # usuario
+      POSTGRES_PASSWORD: BDcasa          # contraseña (solo local, no pasa nada)
+    ports:
+      - "5432:5432"                    # el puerto de la caja se asoma a tu ordenador
+    volumes:
+      - pgdata:/var/lib/postgresql/data  # aquí se guardan los datos entre reinicios
+
+volumes:
+  pgdata:
