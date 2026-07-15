@@ -38,4 +38,11 @@ jobs:
           DB_URL: jdbc:postgresql://localhost:5432/casaesperanza_test
           DB_USER: casa
           DB_PASSWORD: casa
-        run: mvn -B verify
+        run: mvn -B verify -e
+
+      - name: Guardar informe de tests si fallan
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: backend/target/surefire-reports/
