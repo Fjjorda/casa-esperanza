@@ -26,7 +26,7 @@ jobs:
           POSTGRES_PASSWORD: BDcasa
         ports: ["5432:5432"]
         options: >-
-          --health-cmd "pg_isready -U casa" --health-interval 10s
+          --health-cmd "pg_isready -U BDcasa" --health-interval 10s
           --health-timeout 5s --health-retries 5
     steps:
       - uses: actions/checkout@v4
@@ -35,9 +35,9 @@ jobs:
       - name: Pruebas
         working-directory: backend
         env:
-          DB_URL: jdbc:postgresql://localhost:5432/casaesperanza_test
-          DB_USER: casa
-          DB_PASSWORD: casa
+          DB_URL: jdbc:postgresql://localhost:5432/casaesperanza
+          DB_USER: BDcasa
+          DB_PASSWORD: BDcasa
         run: mvn -B verify -e
 
       - name: Guardar informe de tests si fallan
