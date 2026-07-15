@@ -21,7 +21,7 @@ jobs:
       postgres: # BD de usar y eliminar, solo para las pruebas pre-merging
         image: postgres:16-alpine
         env:
-          POSTGRES_DB: casaesperanza_test
+          POSTGRES_DB: casaesperanza
           POSTGRES_USER: BDcasa
           POSTGRES_PASSWORD: BDcasa
         ports: ["5432:5432"]
