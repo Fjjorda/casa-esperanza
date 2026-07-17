@@ -1,5 +1,8 @@
 HELP.md
-target/
+
+### Backend ###
+backend/target/
+*.class
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
@@ -33,4 +36,29 @@ build/
 ### VS Code ###
 .vscode/
 
-node_modules/
+### LaTeX (productos de compilación) ###
+*.aux
+*.log
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.lot
+*.toc
+*.out
+*.synctex.gz
+*.fdb_latexmk
+*.run.xml
+*.bcf
+
+# Ignora el PDF de trabajo que se compila en docs/dgr/src/
+docs/dgr/src/*.pdf
+
+###  Frontend (Angular / Node) ###
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+
+### Otros ###
+.DS_Store
