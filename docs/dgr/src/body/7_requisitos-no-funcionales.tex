@@ -1,0 +1,620 @@
+\section{Requisitos No Funcionales}
+
+\subsection{RNF1 Seguridad de la Información}
+Este bloque cubre los aspectos transversales de protección de la
+información gestionada por el sistema: cifrado, gestión de secretos,
+protección frente a vulnerabilidades comunes y compartición del
+acceso.
+\begin{itemize}
+    \item \textbf{RNF1.1 Cifrado de la información en tránsito} \\
+    Toda comunicación entre cliente y servidor debe realizarse mediante TLS 1.2 o superior.
+    \begin{description}
+        \item[-] El certificado TLS lo provisiona automáticamente Render mediante Let's Encrypt y se renueva sin intervención manual.
+        \item[-] Las comunicaciones internas entre los servicios desplegados en
+        Render (backend a base de datos) viajan por la red privada del
+        proyecto, que es por sí misma una red aislada.  
+    \end{description}
+
+
+    \item \textbf{RNF1.2 Cifrado de datos sensibles en reposo} \\
+    Los datos sensibles almacenados en la base de datos deben estar
+    protegidos frente a acceso no autorizado al medio físico.
+    \begin{description}
+        \item[-] El cifrado a nivel de fichero del sistema lo proporciona Render
+        como parte del servicio gestionado de PostgreSQL.\@
+    \end{description}
+
+
+    \item \textbf{RNF1.3 Gestión de secretos} \\
+    Los secretos de configuración (cadena de conexión a la base de datos,
+    secreto de firma JWT, claves de servicios externos cuando se añadan)
+    nunca se persisten en el código fuente ni en el repositorio.
+    \begin{description}
+        \item[-] Los secretos se gestionan exclusivamente como variables de entorno
+        cifradas en reposo en el dashboard de Render.
+        \item[-] El repositorio incluye un fichero \texttt{.env.example} con los nombres de
+        las variables esperadas pero sin valores reales.
+    \end{description}
+
+
+    \item \textbf{RNF1.4 Protección frente a vulnerabilidades web comunes} \\
+    El sistema debe protegerse activamente frente a las clases de
+    vulnerabilidad recogidas en la lista OWASP Top 10 vigente.
+    \begin{description}
+        \item[-] \textbf{Inyección SQL}: prevención mediante uso exclusivo de consultas
+        parametrizadas a través de Spring Data JPA y, cuando se requieran
+        consultas nativas, mediante el uso de parámetros con bind, nunca
+        concatenación de cadenas. 
+        \item[-] \textbf{Cross-Site Scripting (XSS)}: prevención mediante el escapado
+        automático que Angular aplica por defecto a las interpolaciones
+        en plantillas, y la prohibición de uso de \texttt{innerHTML} o
+        \texttt{bypassSecurityTrust}.
+        \item[-] \textbf{Cross-Site Request Forgery (CSRF)}: como el sistema utiliza
+        autenticación basada en JWT enviado en cabecera \texttt{Authorization},
+        y no en cookies de sesión, el vector clásico de CSRF queda
+        mitigado por construcción.
+        \item[-] \textbf{Inyección de cabeceras}: validación estricta de cabeceras
+        HTTP recibidas y construcción controlada de cabeceras enviadas.
+    \end{description}
+
+
+    \item \textbf{RNF1.5 Compartición del acceso a datos sensibles} \\
+    El acceso a datos sensibles está compartimentado por rol, nivel de
+    seguridad y, cuando aplica, habilitación temporal explícita
+    (RF2.3, RF2.4).
+    \begin{description}
+        \item[-] Las consultas a la base de datos que devuelvan datos sensibles
+        filtran obligatoriamente en función del usuario autenticado: ningún
+        endpoint devuelve datos sensibles sin haber verificado primero la
+        autorización del solicitante.
+        \item[-] Las exportaciones que incluyen datos personales de amigos
+        registran el evento en el log de auditoría con identificador del
+        voluntario que las realiza.
+    \end{description}
+
+
+    \item \textbf{RNF1.6 Análisis de dependencias} \\
+    El proyecto debe revisar periódicamente sus dependencias en busca de
+    vulnerabilidades conocidas.
+    \begin{description}
+        \item[-] Las dependencias del backend Java se revisan mediante
+        \texttt{dependency-check} (OWASP) o equivalente, integrado en el pipeline
+        de integración continua.
+        \item[-] Las dependencias del frontend Angular se revisan mediante \texttt{npm audit}
+        o equivalente, integrado en el pipeline.
+        \item[-] Las vulnerabilidades de severidad alta o crítica deben corregirse
+        antes del siguiente release a producción.
+    \end{description}
+
+
+    \item \textbf{RNF1.7 Escaneo de secretos en el repositorio} \\
+    El repositorio Git debe protegerse frente a la inclusión accidental
+    de secretos en el código fuente utilizando herramientas como \texttt{git-secrets}, \texttt{gitleaks} o el escaneo nativo de GitHub configurado
+    como hook de pre-commit y como verificación en el pipeline.
+\end{itemize}
+
+
+
+\subsection{RNF2 Autenticación}
+Este bloque cubre los mecanismos por los que el sistema verifica la
+identidad de un voluntario que pretende usarlo.
+\begin{itemize}
+    \item \textbf{RNF2.1 Autenticación basada en credenciales} \\
+    El sistema autentica a sus usuarios mediante correo electrónico + contraseña. El correo electrónico es único en el sistema (RF1.1) y actúa como
+    identificador.
+
+
+    \item \textbf{RNF2.2 Almacenamiento seguro de contraseñas} \\
+    Las contraseñas no se almacenan en claro bajo ninguna circunstancia.
+    \begin{description}
+        \item[-] Se utiliza un algoritmo de derivación robusto y resistente a
+        ataques por fuerza bruta: BCrypt con factor de coste configurable
+        (mínimo 10). 
+        \item[-] El backend nunca devuelve la contraseña almacenada ni en respuestas de API ni en logs.
+        \item[-] Las contraseñas no aparecen en mensajes de error ni en notificaciones. 
+    \end{description}
+
+
+    \item \textbf{RNF2.3 Tokens JWT con caducidad limitada} \\
+    La sesión de un voluntario autenticado se materializa en un token JWT
+    con tiempo de vida limitado.
+    \begin{description}
+        \item[-] Tiempo de vida del token de acceso: 60 minutos por defecto, configurable. 
+        \item[-] El token incluye en sus claims el identificador del voluntario, el
+        rol, el nivel de seguridad y las capacidades específicas asignadas.
+        \item[-] El token se firma con un secreto que reside en variables de entorno (RNF1.3).
+        \item[-] No se incluyen en el token datos sensibles del usuario ni datos de amigos. 
+    \end{description}
+
+
+    \item \textbf{RNF2.4 Renovación de sesión} \\
+    El sistema debe renovar la sesión de un voluntario activo sin obligarle
+    a reintroducir credenciales en cada caducidad del token.
+    \begin{description}
+        \item[-] Mecanismo: token de refresco de vida más larga (por defecto, 7 días) almacenado de forma segura en el cliente. 
+        \item[-] El token de refresco se invalida explícitamente al cerrar sesión (RF1.5).
+        \item[-] La renovación se realiza de forma transparente para el usuario.
+    \end{description}
+
+
+    \item \textbf{RNF2.5 Cierre automático por inactividad} \\
+    El sistema debe cerrar automáticamente la sesión de un voluntario
+    tras un periodo configurable de inactividad.
+    \begin{description}
+        \item[-] Inactividad por defecto: 60 minutos.
+        \item[-] Se considera actividad cualquier petición autenticada al backend.
+        \item[-] 5 minutos antes del cierre, el frontend muestra un aviso visible.
+    \end{description}
+\end{itemize}
+
+
+\subsection{RNF3 Autorización y Control de Acceso}
+Este bloque cubre la verificación de qué puede hacer un usuario una
+vez autenticado.
+\begin{itemize}
+    \item \textbf{RNF3.1 Modelo de control de acceso basado en roles y capacidades} \\
+    El sistema implementa autorización mediante un modelo combinado de
+    roles fijos (RF2.1) y capacidades granulares (RF2.2) que amplían o
+    restringen el comportamiento por defecto del rol.
+
+
+    \item \textbf{RNF3.2 Verificación obligatoria en backend} \\
+    Toda operación que acceda a datos sensibles o modifique el estado
+    del sistema debe verificar la autorización del solicitante en el
+    backend.
+    \begin{description}
+        \item[-] La ocultación de elementos en la interfaz del frontend no
+        constituye por sí sola un mecanismo de autorización. 
+        \item[-] Cada endpoint expuesto declara explícitamente las capacidades
+        requeridas para invocarlo, mediante anotaciones (\texttt{@PreAuthorize})
+        o equivalente declarativo.
+        \item[-] Una llamada sin las capacidades necesarias responde con código
+        HTTP 403 sin filtrar información sobre la operación solicitada.
+    \end{description}
+
+
+    \item \textbf{RNF3.3 Caducidad automática de habilitaciones} \\
+    Las habilitaciones temporales (RF2.4) caducan automáticamente sin intervención manual.
+
+
+    \item \textbf{RNF3.4 Principio de privilegio mínimo} \\
+    El diseño del sistema sigue el principio de privilegio mínimo: cada
+    voluntario recibe el conjunto de capacidades estrictamente necesarias
+    para desempeñar su función.
+
+
+    \item \textbf{RNF3.5 Auditoría de cambios en autorización} \\
+    Toda modificación del rol, nivel de seguridad o capacidades de un
+    voluntario queda registrada en el log de auditoría con identificador
+    del Admin que realiza el cambio, valor anterior, valor nuevo y marca
+    de tiempo (véase también RNF5).
+\end{itemize}
+
+
+\subsection{RNF4 Validación de Datos}
+Este bloque cubre la verificación de los datos introducidos en el
+sistema antes de su persistencia o procesamiento.
+\begin{itemize}
+    \item \textbf{RNF4.1 Validación obligatoria en backend} \\
+    Toda entrada de datos al sistema debe validarse en el backend con
+    independencia de las validaciones que el frontend pueda realizar. La validación en el frontend mejora la experiencia de usuario pero
+    nunca sustituye a la validación en el backend.
+
+
+    \item \textbf{RNF4.2 Validación declarativa de DTOs} \\
+    La validación de datos en el backend se implementa de forma
+    declarativa mediante Bean Validation (\texttt{jakarta.validation.constraints})
+    sobre los DTOs de entrada.
+    \begin{description}
+        \item[-] Los controladores declaran \texttt{@Valid} o \texttt{@Validated} en los
+        parámetros de entrada para activar la validación automática. 
+        \item[-] Las violaciones de validación se traducen en respuestas HTTP 400
+        con detalle estructurado de los campos inválidos.
+        \item[-] Las restricciones de validación se documentan en el código junto al DTO al que aplican.
+    \end{description}
+
+
+    \item \textbf{RNF4.3 Validaciones de formato} \\
+    El sistema valida que los datos introducidos respetan el formato esperado.
+    \begin{description}
+        \item[-] Correos electrónicos cumplen la sintaxis RFC 5321/5322.
+        \item[-] Fechas válidas en formato ISO 8601.
+        \item[-] Importes numéricos con dos decimales máximo y separador decimal punto.   
+        \item[-] Cadenas de texto con longitudes máximas explícitas.
+    \end{description}
+
+
+    \item \textbf{RNF4.4 Validaciones de lógica de negocio} \\
+    El sistema valida no solo formato sino también las reglas de negocio
+    declaradas en los requisitos funcionales.
+    \begin{description}
+        \item[-] Una entrega de prenda no puede registrarse si no hay stock disponible (RF5.3.3). 
+        \item[-] Una salida alimentaria con prioridad distinta de 1 requiere justificación obligatoria (RF6.4). 
+        \item[-] Un asiento contable con tipo Amigo requiere amigo vinculado (RF7.4.2).
+        \item[-] Las reglas se implementan en la capa de servicio, no en
+        controladores ni repositorios, para mantener la separación de
+        responsabilidades.
+    \end{description}
+
+
+    \item \textbf{RNF4.5 Entradas de texto seguras y limpias en el sistema} \\
+    Las entradas de texto libre destinadas a almacenarse y posteriormente
+    mostrarse a otros usuarios se sanitizan para evitar inyección de
+    contenido malicioso.
+    \begin{description}
+        \item[-] El escapado de salida en plantillas Angular ya proporciona
+        protección frente a XSS por defecto. 
+    \end{description}
+\end{itemize}
+
+
+\subsection{RNF5 Auditoría y Trazabilidad}
+Este bloque cubre el registro de las operaciones que el sistema
+realiza, con el fin de garantizar trazabilidad ante incidentes,
+auditorías y conflictos.
+\begin{itemize}
+    \item \textbf{RNF5.1 Registro de operaciones sensibles} \\
+    El sistema mantiene un registro persistente e inmutable de las
+    operaciones que afectan a datos sensibles, datos contables o al
+    modelo de autorización.
+    \begin{description}
+        \item[-] Operaciones registradas: creación, modificación y eliminación de
+        fichas de amigo en cualquier nivel; cambio de nivel de confianza;
+        edición y anulación de asientos contables; entrada y salida
+        alimentaria; modificación de cuenta de voluntario; cambio de
+        rol, nivel de seguridad o capacidades; concesión y revocación
+        de habilitaciones temporales; intentos de acceso no autorizado. 
+        \item[-] Cada registro incluye al menos: identificador único del evento,
+        marca de tiempo en UTC, identificador del voluntario que realiza
+        la acción, tipo de acción, entidad afectada, identificador de la
+        entidad afectada, valor anterior (cuando aplique), valor nuevo
+        (cuando aplique).
+    \end{description}
+
+
+    \item \textbf{RNF5.2 Inmutabilidad del registro de auditoría} \\
+    Los registros de auditoría son inmutables una vez escritos. No debe existir en el sistema ninguna operación que permita modificar
+    o eliminar entradas del registro de auditoría.
+    \begin{description}
+        \item[-] La integridad del registro se protege adicionalmente mediante el
+        uso de una tabla con sólo permisos de inserción (no \texttt{UPDATE} ni
+        \texttt{DELETE}) a nivel de la base de datos. 
+    \end{description}
+
+
+    \item \textbf{RNF5.3 Consultabilidad del registro} \\
+    El registro de auditoría es consultable por usuarios con rol Admin a
+    través de una pantalla del sistema.
+    \begin{description}
+        \item[-] Filtros disponibles: rango de fechas, voluntario, tipo de acción, entidad afectada.
+        \item[-] Los resultados se muestran paginados.
+        \item[-] Se permite exportación CSV para análisis externo.  
+    \end{description}
+
+
+    \item \textbf{RNF5.4 Trazabilidad de cambios en datos críticos} \\
+    Para las entidades especialmente críticas (asientos contables,
+    entradas y salidas alimentarias, fichas de amigo en nivel 3) el
+    registro de auditoría conserva el valor anterior y el valor nuevo
+    de cada campo modificado.
+\end{itemize}
+
+
+
+\subsection{RNF6 Persistencia y Gestión de Datos}
+Este bloque cubre las propiedades del sistema relativas al almacenamiento
+y la integridad de la información, así como las copias de seguridad y la
+recuperación frente a incidentes.
+\begin{itemize}
+    \item \textbf{RNF6.1 Sistema de gestión de base de datos} \\
+    El sistema utiliza PostgreSQL como base de datos relacional única. La instancia es la 
+    provista como servicio gestionado por Render.
+
+
+    \item \textbf{RNF6.2 Integridad referencial y transaccional} \\
+    Las operaciones que afectan a múltiples entidades se ejecutan dentro
+    de una transacción atómica.
+    \begin{description}
+        \item[-] Una entrega de prenda a un amigo (RF5.3) que comporta crear un
+        registro de entrega y decrementar el stock se ejecuta como una
+        única transacción: o ambos cambios se persisten o ninguno lo hace.
+        \item[-] Las invariantes de negocio críticas (un asiento de tipo Amigo
+        exige amigo vinculado, una recepción de lavandería exige amigo
+        asociado, etc.) se validan tanto en la capa de servicio como
+        mediante restricciones declarativas en la base de datos cuando es
+        posible.
+        \item[-] Las relaciones entre entidades se garantizan mediante claves
+        foráneas declaradas a nivel de la base de datos.
+    \end{description}
+
+
+    \item \textbf{RNF6.3 Indexación de columnas de búsqueda frecuente} \\
+    Las columnas que participan habitualmente en filtros, ordenaciones
+    o cláusulas \texttt{WHERE} deben disponer de los índices apropiados.
+    \begin{description}
+        \item[-] Como mínimo: \texttt{amigo.dni}` con índice único, \texttt{amigo.nombre}` y
+        \texttt{amigo.alias} con índices para búsqueda parcial, fechas en
+        asientos contables y entradas/salidas alimentarias, claves foráneas
+        en todas las entidades, columnas de filtro frecuente del log de
+        auditoría 
+    \end{description}
+
+
+    \item \textbf{RNF6.4 Tipos de datos eficientes} \\
+    El diseño del esquema utiliza los tipos de datos más eficientes
+    compatibles con los requisitos del dominio.
+    \begin{description}
+        \item[-] Identificadores numéricos: \texttt{INTEGER} salvo justificación de uso de \texttt{BIGINT}. 
+        \item[-] Cadenas de longitud acotada: \texttt{VARCHAR(n)} con \texttt{n} declarado % chktex 36
+        explícitamente, no \texttt{TEXT}, salvo en campos de descripción libre. 
+        \item[-] Fechas sin componente horario: \texttt{DATE}, no \texttt{TIMESTAMP}.
+        \item[-] Booleanos: \texttt{BOOLEAN}.
+        \item[-] Importes monetarios: \texttt{NUMERIC(p,s)} con escala fija de dos % chktex 36
+        decimales, no \texttt{FLOAT} ni \texttt{DOUBLE}.
+    \end{description}
+\end{itemize}
+
+
+\subsection{RNF7 Rendimiento}
+Este bloque cubre los criterios cuantitativos de rendimiento del
+sistema bajo condiciones de carga esperada.
+\begin{itemize}
+    \item \textbf{RNF7.1 Tiempos de respuesta} \\
+    Los tiempos de respuesta del sistema bajo condiciones normales de
+    carga deben mantenerse en niveles que no degraden la experiencia
+    de usuario. Estas son métricas orientativas pero deseables en la medida de lo posible:
+    \begin{description}
+        \item[-] Operaciones simples (consulta de ficha, listado paginado, login): inferior a 500 ms.
+        \item[-] Operaciones medias (creación de asiento contable con autocompletado, generación de 
+        informe mensual): inferior a 2 segundos.
+        \item[-] Operaciones pesadas (importación de datos en lote de hasta 1000
+        filas, generación de cuaderno alimentario anual): inferior a 10 segundos. 
+    \end{description}
+
+
+    \item \textbf{RNF7.2 Paginación obligatoria de listados} \\
+    Toda consulta que pueda devolver un volumen significativo de
+    resultados se entrega paginada.
+    \begin{description}
+        \item[-] Tamaño de página por defecto: 20 elementos, máximo permitido: 100 elementos. 
+        \item[-] Las peticiones que solicitan tamaños superiores se acotan
+        silenciosamente al máximo. 
+        \item[-] Las consultas devuelven, junto a los datos, los metadatos de
+        paginación necesarios para que el cliente pueda navegar
+        (página actual, total de páginas, total de registros).
+    \end{description}
+
+
+    \item \textbf{RNF7.3 Optimización de respuestas en backend} \\
+    Las respuestas de la API se optimizan para minimizar el tamaño
+    transferido y la latencia percibida.
+    \begin{description}
+        \item[-] Los endpoints utilizan DTOs específicos, no entidades de
+        persistencia completas.
+        \item[-] Para cada endpoint que devuelve listados, el DTO de listado es
+        más ligero que el DTO de detalle. 
+    \end{description}
+
+
+    \item \textbf{RNF7.4 Lazy loading en frontend} \\
+    El frontend Angular implementa carga diferida de los módulos no
+    imprescindibles para el primer pintado.
+    \begin{description}
+        \item[-] El bundle inicial contiene únicamente el código necesario para la
+        pantalla de login y el armazón de la aplicación autenticada. 
+        \item[-] Cada dominio funcional (gestión del amigo, contabilidad,
+        trazabilidad alimentaria, etc.) se carga al navegar a él por
+        primera vez.
+        \item[-] El objetivo es mantener el bundle inicial por debajo de 500 KB comprimidos.
+    \end{description}
+
+
+    \item \textbf{RNF7.5 Generación de PDFs en cliente cuando sea posible} \\
+    Los informes en formato PDF que pueden producirse a partir de los
+    datos ya cargados en el navegador se generan en el cliente, sin
+    involucrar al backend. Esta decisión reduce el ancho de banda saliente del backend y
+    distribuye la carga de cómputo al dispositivo del usuario.
+    \begin{description}
+        \item[-] Se utiliza una librería ligera (jsPDF, pdfmake o equivalente). 
+        \item[-] Los informes que requieren acceso a datos no cargados o cálculos
+        complejos sí se generan en el backend.
+    \end{description}
+
+
+    \item \textbf{RNF7.6 Operaciones intensivas en segundo plano} \\
+    Las operaciones que pueden tardar más de unos pocos segundos se
+    ejecutan de forma que no bloquean al usuario cuando sea posible.
+    \begin{description}
+        \item[-] Las importaciones masivas de datos (RF9.3) se procesan con un
+        indicador de progreso visible notificando como ``completado'' cuando finalizan.
+    \end{description}
+\end{itemize}
+
+
+
+\subsection{RNF8 Usabilidad}
+Este bloque cubre las propiedades del sistema que determinan la
+facilidad y satisfacción con la que los usuarios lo utilizan,
+considerando la heterogeneidad del voluntariado real de la asociación.
+\begin{itemize}
+    \item \textbf{RNF8.1 Diseño responsive} \\
+    El sistema funciona correctamente en dispositivos con anchos de
+    pantalla desde 320 píxeles (móvil pequeño) hasta 1920 píxeles
+    (escritorio amplio).
+    \begin{description}
+        \item[-] Las operaciones frecuentes en tableta (registrar una ducha,
+        entregar una prenda, anotar una entrada alimentaria) están
+        optimizadas para uso con una mano. 
+        \item[-] Los formularios largos se reorganizan en columna única en
+        pantallas estrechas para evitar desplazamientos horizontales o en menús progresivos según convenga.
+    \end{description}
+
+
+    \item \textbf{RNF8.2 Optimización para uso táctil} \\
+    En dispositivos táctiles, los elementos interactivos respetan los
+    tamaños mínimos recomendados para uso con dedo y acciones potencialmente destructivas (eliminar, anular)
+    requieren confirmación explícita para evitar pulsaciones
+    accidentales.
+
+
+    \item \textbf{RNF8.3 Adecuación de la interfaz de usuario} \\
+    La interfaz se diseña teniendo en cuenta la heterogeneidad del
+    voluntariado, desde perfiles plenamente digitales hasta perfiles
+    predominantemente analógicos. Se utilizarán metáforas visuales claras, 
+    lenguaje sencillo evitando términos técnicos (CRM, JWT, registro, etc.) 
+    y se evitará la sobrecarga de información en formularios o menús.
+
+
+    \item \textbf{RNF8.4 Mensajes de error útiles} \\
+    Los mensajes de error son comprensibles, accionables y orientados
+    al usuario, no al desarrollador: debe indicar, cuando es posible, qué hacer para resolver
+    el problema.
+
+
+    \item \textbf{RNF8.5 Consistencia visual y de interacción} \\
+    Las pantallas del sistema mantienen consistencia en su disposición,
+    nomenclatura, iconografía y patrones de interacción.
+    \begin{description}
+        \item[-] Los botones de acción primaria y secundaria se distinguen
+        visualmente y se ubican consistentemente. 
+        \item[-] Los iconos utilizados para una misma acción (editar, eliminar,
+        filtrar, exportar) son los mismos en toda la aplicación.
+        \item[-] Los formularios siguen el mismo patrón de disposición:
+        etiqueta arriba, campo debajo, mensaje de error inmediatamente
+        bajo el campo.
+    \end{description}
+
+
+    \item \textbf{RNF8.6 Indicación de progreso y feedback} \\
+    El sistema mantiene al usuario informado del estado de las
+    operaciones que realiza.
+    \begin{description}
+        \item[-] Operaciones que toman más de 2 segundos muestran progreso
+        cuantitativo cuando es posible (porcentaje, X de Y, etc.). 
+        \item[-] Los cambios de estado relevantes (asiento creado, entrega
+        registrada, sesión próxima a expirar) se comunican
+        proactivamente.
+        \item[-] Las operaciones completadas con éxito producen una confirmación
+        visual breve y no bloqueante.
+    \end{description}
+
+
+    \item \textbf{RNF8.7 Adecuación lingüística} \\
+    La interfaz se ofrece en español de España, con vocabulario y
+    giros propios de Andalucía cuando aporten cercanía sin
+    comprometer la claridad.
+\end{itemize}
+
+
+
+\subsection{RNF9 Accesibilidad}
+Este bloque cubre las propiedades del sistema que garantizan su
+usabilidad por personas con diversidad funcional.
+\begin{itemize}
+    \item \textbf{RNF9.1 Cumplimiento de WCAG 2.1 AA} \\
+    El sistema cumple las pautas de accesibilidad para contenido web
+    WCAG 2.2 en su nivel de conformidad AA.\@
+
+
+    \item \textbf{RNF9.2 Contraste de color} \\
+    Los pares texto-fondo cumplen las relaciones de contraste mínimas
+    exigidas por WCAG 2.2 AA.\@
+
+
+    \item \textbf{RNF9.3 Navegación por teclado} \\
+    Toda la funcionalidad del sistema es operable mediante teclado, sin
+    necesidad de ratón o pantalla táctil.
+    \begin{description}
+        \item[-] El orden de tabulación sigue una secuencia lógica.
+        \item[-] El foco actual es siempre visible.
+        \item[-] Las acciones primarias en formularios son ejecutables con la tecla
+        \texttt{Enter} desde cualquier campo del formulario.
+    \end{description}
+
+
+    \item \textbf{RNF9.4 Independencia de la interacción del color} \\
+    La información transmitida visualmente mediante color se duplica
+    mediante otros medios (texto, iconos, patrones).
+
+
+    \item \textbf{RNF9.5 Adaptabilidad a preferencias del usuario} \\
+    La interfaz respeta las preferencias del sistema operativo del
+    usuario cuando es razonable hacerlo.
+    \begin{description}
+        \item[-] Modo oscuro si el sistema operativo lo solicita. 
+        \item[-] Tamaño de fuente ajustable según preferencias del sistema operativo.
+    \end{description}
+\end{itemize}
+
+
+\subsection{RNF10 Operación y Mantenimiento}
+Este bloque cubre las propiedades del sistema relativas a su operación
+continuada en producción.
+\begin{itemize}
+    \item \textbf{RNF10.1 Monitorización de salud} \\
+    El sistema expone endpoints de comprobación de salud que permiten
+    a Render y a herramientas externas verificar su estado.
+    \begin{description}
+        \item[-] Endpoint ligero \texttt{/actuator/health} que responde en menos de 100
+        ms y no consulta la base de datos, utilizado como health check por la plataforma. 
+    \end{description}
+
+
+    \item \textbf{RNF10.2 Pruebas automatizadas} \\
+    El proyecto dispone de un conjunto de pruebas automatizadas que
+    verifican el comportamiento esperado del sistema.
+    \begin{itemize}
+        \item \textbf{RNF10.2.1 Pruebas unitarias} \\
+        Las clases de la capa de servicio y los componentes con lógica
+        significativa del frontend disponen de pruebas unitarias.
+        \begin{description}
+            \item[-] Cobertura mínima objetivo: 80\% de líneas para la capa de servicio del backend.
+            \item[-] Las pruebas unitarias se ejecutan en cada commit y deben pasar
+            para que el push pueda realizarse un merge a las ramas principales. 
+        \end{description}
+        \item \textbf{RNF10.2.2 Pruebas de integración} \\
+        Los flujos críticos del sistema disponen de pruebas de integración
+        que verifican el comportamiento extremo a extremo en backend.
+        \begin{description}
+            \item[-] Flujos cubiertos: autenticación y autorización, creación de
+            asiento contable, ciclo de entrega de prenda, registro de entrada
+            alimentaria, importación de datos en lote. 
+            \item[-] Las pruebas de integración utilizan una base de datos PostgreSQL
+            desplegada en contenedor Docker, no mocks.
+        \end{description}
+        \item \textbf{RNF10.2.3 Pruebas de control de acceso} \\
+        El sistema dispone de pruebas específicas que verifican la
+        aplicación correcta del control de acceso (RNF3).
+        \begin{description}
+            \item[-] Cada endpoint dispone de al menos una prueba que verifica que
+            un usuario sin las capacidades necesarias recibe respuesta 403. 
+        \end{description}
+    \end{itemize}
+
+
+    \item \textbf{RNF10.3 Documentación operativa} \\
+    El proyecto mantiene documentación viva sobre su operación.
+    \begin{description}
+        \item[-] README del repositorio con instrucciones de arranque local,
+        ejecución de pruebas, despliegue. 
+        \item[-] Documentación de incidentes pasados, sus causas y resoluciones,
+        como base de conocimiento.
+    \end{description}
+\end{itemize}
+
+
+\subsection{RNF11 Cumplimiento Legal y Normativo}
+Este bloque cubre las obligaciones legales que el sistema debe
+satisfacer por la naturaleza de los datos y la actividad que gestiona.\
+\begin{itemize}
+    \item \textbf{RNF11.1 Cumplimiento del Reglamento General de Protección de Datos} \\
+    El tratamiento de datos personales realizado por el sistema cumple
+    las exigencias del Reglamento (UE) 2016/679 (RGPD) y la Ley
+    Orgánica 3/2018 de Protección de Datos Personales y Garantía de los
+    Derechos Digitales siguiendo el \textit{principio de limitación de la finalidad}: los datos recogidos para
+    una finalidad específica no se utilizan para finalidades incompatibles.
+
+
+    \item \textbf{RNF11.2 Cumplimiento de la Ley 1/2025 de prevención de pérdidas y desperdicio alimentario} \\
+    El módulo de trazabilidad alimentaria (RF6) implementa las exigencias documentales de la Ley 1/2025.
+\end{itemize}

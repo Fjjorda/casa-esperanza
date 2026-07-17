@@ -1,0 +1,99 @@
+\section*{Requisitos Funcionales}
+\subsection*{RF1 Gestión de Cuenta}
+
+\begin{itemize}
+    \item \textbf{RF1.1 Creación de cuentas Owner} \\
+    El sistema debe permitir a los Plytix Admin crear cuentas Owner.
+    
+    \item \textbf{RF1.3 Creación de cuentas User} \\
+    El sistema debe permitir al Owner crear cuentas de usuario para empleados de la empresa (User).
+
+    \item \textbf{RF1.4 Visualizar datos de la cuenta} \\
+    El usuario debe poder ver los datos de su cuenta: nombre, logotipo, correo, contraseña, fecha y hora de creación.
+
+    \item \textbf{RF1.5 Actualizar datos de la cuenta} \\
+    El usuario debe poder modificar los datos de la cuenta, a excepción de la fecha y hora de creación.
+
+    \item \textbf{RF1.6 Borrar cuenta} \\
+    El sistema debe permitir la eliminación de una cuenta a un Owner, siguiendo políticas de seguridad y permisos.
+
+    \item \textbf{RF1.7 Iniciar sesión} \\
+    Los usuarios deben poder autenticarse en el sistema introduciendo credenciales válidas.
+
+    \item \textbf{RF1.8 Cerrar sesión} \\
+    El sistema debe permitir al usuario cerrar sesión de manera segura.
+
+    \item \textbf{RF1.9 Crear informe de cuenta} \\
+    El sistema debe poder generar un informe detallado con la información de la cuenta.
+    \begin{itemize}
+        \item \textbf{RF1.9.1 Exportar informe de cuenta} \\
+        El informe generado debe poder ser exportado en formato .json, incluyendo la información  de: nombre de la cuenta, fecha de creación, número de productos, assets y tamaño utilizado de almacenamiento en bytes, número de categorías de productos y assets, número de atributos de usuario creados, número de relaciones creadas, una lista de los usuarios con su nombre, si existe, y su dirección de correo electrónico. % chktex 26
+    \end{itemize}
+
+
+    \item \textbf{RF1.10 Emulación de cuenta} \\
+    El Agente puede emular una cuenta de  \textit{Owner} o  \textit{User} para brindar soporte y verificar problemas específicos de la cuenta.
+
+    \item \textbf{RF1.11 Creación de cuenta Agente} \\
+    La cuenta de Agente debe crearse y eliminarse desde el sistema de administración central de Plytix.
+
+
+    \item \textbf{RF1.12 Capacidad y duración de la cuenta Agente} \\
+    El Agente tiene permisos para ver y analizar los datos de productos y assets, pero no puede modificar ni eliminar información de la cuenta a la que brinda soporte y tiene tiempo de vida limitado hasta que se soluciona el problema.
+\end{itemize}
+
+\subsection*{RF2 Gestión de Producto}
+
+\begin{itemize}
+    \item \textbf{RF2.1 Crear producto} \\
+    Todos los usuarios deben poder añadir nuevos productos al sistema, especificando los atributos del sistema: GTIN, SKU, clave, thumbnail y label; los atributos de usuario, hasta 5 opcionales; y las categorías, assets y relaciones.
+
+    \item \textbf{RF2.2 Visualizar producto} \\
+    Los productos deben poder ser visualizados con todos sus detalles.
+
+    \item \textbf{RF2.3 Editar producto} \\
+    El sistema debe permitir a los usuarios editar la información de los productos existentes.
+
+    \item \textbf{RF2.4 Borrar producto} \\
+    Los productos deben poder ser eliminados por los usuarios, siempre y cuando no estén asociados a otras entidades clave del sistema.
+
+    \item \textbf{RF2.5 Importación de productos en plataformas externas} \\
+    Los usuarios deben poder importar productos de plataformas externas al sistema.
+\end{itemize}
+
+\subsection*{RF3 Gestión de Assets}
+
+\begin{itemize}
+    \item \textbf{RF3.1 Crear asset} \\
+    Todos los usuarios deben poder subir assets al sistema de tipo: pdf, imágen, vídeo, binario y ejecutable.
+
+    \item \textbf{RF3.2 Visualizar asset} \\
+    El sistema debe permitir visualizar los assets almacenados, incluyendo el nombre, su fecha de adición, la asociación con otros productos, su thumbnail, el tipo de archivo y su tamaño.
+
+    \item \textbf{RF3.3 Editar asset} \\
+    Los usuarios deben poder modificar las propiedades de un asset.
+
+    \item \textbf{RF3.4 Borrar asset} \\
+    Los assets pueden ser eliminados, salvo que estén asociados a un producto.
+    \begin{itemize}
+        \item \textbf{RF3.4.1 Restricción de borrado de asset} \\
+        El sistema debe impedir la eliminación de un asset si está asociado a algún producto.
+    \end{itemize}
+
+    \item \textbf{RF3.5 Crear asociación de asset} \\
+    Los usuarios deben poder asociar assets a productos en el sistema.
+
+    \item \textbf{RF3.6 Ver asociación de asset} \\
+    Las asociaciones de assets con productos deben ser visibles y consultables por los usuarios.
+
+    \item \textbf{RF3.7 Editar asociación de asset} \\
+    El sistema debe permitir modificar las asociaciones entre assets y productos.
+
+    \item \textbf{RF3.8 Borrar asociación de asset} \\
+    Los usuarios deben poder eliminar asociaciones de assets, siempre y cuando no violen restricciones del sistema.
+\end{itemize}
+
+
+\section*{Requisitos No Funcionales}
+\subsection*{RNF1 Accesibilidad}
+El sistema debe cumplir con los estándares de accesibilidad WCAG 2.2 para asegurar su usabilidad por personas con discapacidades.

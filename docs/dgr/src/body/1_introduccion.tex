@@ -1,0 +1,329 @@
+\section{Introducción}
+La Casa de la Esperanza es una asociación sin ánimo de lucro radicada en la Parroquia Nuestra Señora de las Angustias 
+(El Palo, Málaga) que presta servicios de ayuda comunitaria a personas en situación de vulnerabilidad o sin hogar. 
+Su actividad cotidiana incluye la entrega de desayunos y meriendas, la disponibilidad de duchas, un ropero de prendas 
+donadas y un servicio de lavandería, así como acompañamiento profesional voluntario en áreas jurídica, médica, psicológica, 
+podológica y de extranjería. La organización gestiona además compras puntuales para los usuarios atendidos desde tasas de 
+DNI hasta medicamentos prescritos o billetes de transporte y recibe donaciones de particulares.
+\par
+\vspace{5mm}
+Toda esta actividad se gestiona actualmente mediante cuadernos de papel y un conjunto \textbf{disperso} de hojas de cálculo 
+(Excel y Google Drive) que cada voluntario o miembro de la directiva mantiene de forma independiente. Esta fragmentación 
+produce tres problemas operativos graves:
+\begin{enumerate}
+    \item \textbf{Pérdida de trazabilidad}: no existe un histórico unificado de qué se ha
+    entregado, a quién, cuándo y por parte de qué voluntario, lo que ha generado en
+    ocasiones conflictos entre voluntarios y entre voluntario y usuario por extravío
+    o reparto irregular de prendas.  
+    \item \textbf{Dificultad para justificar gastos y servicios}: ante entidades financiadoras (La Caixa, Ayuntamiento,
+    gestoría fiscal) los datos se manejan en porcentajes aproximados en lugar de
+    cifras exactas, lo que debilita las solicitudes de subvención.
+    \item \textbf{Carga manual tediosa} que recae sobre un núcleo reducido de personas,
+    especialmente sobre la coordinación y la contabilidad, ya que cada movimiento
+    debe registrarse, cruzarse y consultarse manualmente entre múltiples ficheros.
+\end{enumerate}
+\par
+\vspace{5mm}
+A esta situación se añade un factor regulatorio reciente: la entrada en vigor de
+la \textbf{Ley 1/2025, de 1 de abril, de prevención de las pérdidas y el desperdicio
+alimentario}, que impone a las entidades que manipulan alimentos la obligación
+de mantener un cuaderno de entradas y salidas, registrar lotes y caducidades,
+controlar temperaturas de productos refrigerados, clasificar los alimentos por
+prioridad de aprovechamiento y conservar trazabilidad documental (tickets,
+albaranes y convenios de donación) para soportar inspecciones sanitarias y
+auditorías. El incumplimiento expone a la asociación a sanciones administrativas o legales.
+\par
+\vspace{5mm}
+Por esas razones, este documento recoge la especificación de requisitos de software (ERS)
+para el desarrollo de una \textbf{aplicación web de gestión a medida} que sustituya
+el flujo manual actual, centralice la información dispersa y garantice el
+cumplimiento de la Ley 1/2025. Este proyecto proporcionará a la directiva las herramientas de
+reporte necesarias para la gestión de subvenciones y simplificación en la rendición de cuentas
+ante la gestoría fiscal.
+
+
+\subsection{Propósito}
+El objetivo del sistema es \textbf{digitalizar y centralizar la gestión integral de
+la Casa de la Esperanza} en una única aplicación web que cubra cuatro dominios
+funcionales hasta hoy desconectados:
+\begin{enumerate}
+    \item \textbf{Gestión de personas}: amigos\footnote{A lo largo del documento se aparecerá el término \textit{amigos} para referirse a las personas  en situación de vulnerabilidad. También, dependiendo del contexto, se usa \textit{usuario}. Son intercambiables y equivalentes entre sí. Más información en sección \vref{section_DefinicionesAcronimos}.} % chktex 2
+      atendidos (con ficha progresiva por nivel de confianza) y voluntarios (con roles y niveles de acceso diferenciados).
+
+    \item \textbf{Gestión de servicios}: agendamiento y trazabilidad de duchas, asistencias
+       profesionales y entregas ropa.
+
+    \item \textbf{Trazabilidad alimentaria} conforme a las exigencias de la Ley 1/2025.
+    
+    \item \textbf{Gestión contable}: importación automatizada de movimientos bancarios,
+       mapeo a un plan de cuentas parametrizable, registro de gastos por persona
+       y generación de informes para subvenciones y gestoría.
+\end{enumerate}
+\par
+\vspace{5mm}
+El objetivo último, en palabras del cliente, es disponer de una
+\textbf{visión de \enquote{universo}}: una vista agregada y trazable de toda la actividad
+que permita pasar de gestionar \enquote{el árbol} (cada voluntario con su Excel) a
+gestionar \enquote{el bosque} (la asociación como un todo). Este propósito guiará las
+decisiones de diseño y desarrollo a lo largo de todo el proyecto, evitando que
+el sistema se convierta en una replica digital de las hojas de cálculo
+existentes y asegurando que añade valor real en términos de trazabilidad,
+cumplimiento legal y eficiencia operativa.
+
+
+\subsection{Alcance del Sistema}
+El sistema será una aplicación web accesible mediante un navegador desde tablets,
+ordenadores y dispositivos móviles. Su alcance funcional cubre:
+\begin{itemize}
+    \item \textbf{Gestión de cuentas y autenticación} de voluntarios del centro.
+    
+    \item \textbf{Control de acceso por roles y niveles de visibilidad} sobre datos sensibles.
+
+    \item \textbf{Gestión del expediente del amigo} (usuario atendido) con ficha progresiva 
+    según nivel de confianza, histórico de servicios recibidos y trazabilidad de
+    comunicaciones externas vinculadas a su perfil.
+
+    \item \textbf{Catálogo y agendamiento de servicios} prestados por el centro.
+    
+    \item \textbf{Inventario y entregas de ropa} desde la lavandería personal del centro.
+
+    \item \textbf{Trazabilidad alimentaria} completa (entradas, salidas, lotes, caducidades,
+    temperaturas, prioridad legal y convenios de donación).
+
+    \item \textbf{Contabilidad operativa}: plan de cuentas, asientos de diario, importación
+    de extractos bancarios, mapeo automático de conceptos, gestión diferenciada
+    de tarjeta y caja chica, y trazabilidad de gastos sobre un amigo.
+
+    \item \textbf{Generación de informes} numéricos exactos para subvenciones, gestoría y
+    uso interno de la directiva.
+
+    \item \textbf{Puente analógico-digital}: impresión de planillas con los campos de las
+    entidades de la base de datos para rellenarse a mano posteriormente cargarse a la misma con facilidad. Se pensó para aquellos voluntarios 
+    que no tienen la destreza tecnológica para usar el sistema propuesto o por preferencias personales.
+\end{itemize}
+\par
+\noindent Queda \textbf{fuera del alcance} del sistema en su versión inicial:
+\begin{itemize}
+    \item La sustitución de la gestoría fiscal externa. El sistema actuará como \textbf{doble
+      contabilidad interna} que la directiva contrasta con la gestoría, pero no
+      asume las responsabilidades fiscales (presentación de modelos tributarios,
+      cierre anual oficial, etc.).
+
+    \item La gestión de nóminas o relaciones laborales (la asociación opera con
+      voluntariado).
+
+    \item La integración directa con los sistemas de Bancosol, Mercadona o
+      ayuntamiento. Los convenios y donaciones se registrarán manualmente en el
+      sistema.
+       
+    \item El envío automatizado de notificaciones por correo electrónico o WhatsApp,
+      contemplado como mejora futura (véase sección \vref{section_RequisitosFuturos}). % chktex 2
+\end{itemize}
+\par
+El sistema interactúa con tres tipos de actores externos: la \textbf{gestoría fiscal}
+(receptora de información contable mediante exportaciones), las \textbf{entidades
+financiadoras} (receptoras de informes de actividad y gasto) y las
+\textbf{autoridades sanitarias} (receptoras eventuales del cuaderno de trazabilidad
+alimentaria en caso de inspección).
+
+\subsection{Definiciones, Acrónimos y Abreviaturas}\label{section_DefinicionesAcronimos}
+
+\begin{longtable}[]{@{}
+    % Metadatos de la tabla
+        p{0.4286\columnwidth}
+        p{0.5714\columnwidth}@{}}
+
+    \caption{Glosario de términos} \\
+
+    % Configuración de la tabla para repetir encabezados en cada página
+    \toprule
+    \textbf{Término} & \textbf{Definición} \\
+    \midrule
+    \endfirsthead % chktex 1
+
+    \toprule
+    \textbf{Término} & \textbf{Definición} \\
+    \midrule
+    \endhead % chktex 1
+
+    \midrule
+    \multicolumn{2}{r}{\small\emph{Continúa en la siguiente página}} \\
+    \endfoot % chktex 1
+
+    \bottomrule
+    \endlastfoot % chktex 1
+
+    % Cuerpo de la tabla
+    \textbf{Amigo} & Persona atendida por la Casa de la Esperanza.
+    Equivalente al término \emph{usuario} del sistema en su acepción de
+    gestión; se prefiere ``amigo'' en el trato y ``usuario'' como nombre de
+    entidad técnica. \\
+    \midrule
+
+    \textbf{Voluntario} & Persona que presta servicio en la asociación y,
+    por tanto, dispone de cuenta en el sistema. \\
+    \midrule
+
+    \textbf{Nivel de confianza} & Atributo del amigo que escalona el detalle
+    de información que se le solicita y se almacena (anónimo-frecuente-entrevistado). \\
+    \midrule
+
+    \textbf{Nivel de seguridad} & Atributo del voluntario (\texttt{BASICO} o \texttt{PRIVILEGIADO}) que determina qué datos sensibles puede visualizar. \\
+    \midrule
+
+    \textbf{Servicio} & Prestación que el centro ofrece al amigo: ducha,
+    asistencia jurídica, médica, psicológica, podológica, de extranjería,
+    educativa, etc. \\
+    \midrule
+
+    \textbf{Armario general} & Stock impersonal de ropa donada del que se
+    entregan prendas a los amigos. \\
+    \midrule
+
+    \textbf{Caja chica} & Fondo en efectivo gestionado por la coordinación
+    para pequeños gastos diarios. \\
+    \midrule
+
+    \textbf{Asiento contable} & Registro de un movimiento económico en el
+    libro de diario, con fecha, concepto, cuenta de cargo, cuenta de abono e
+    importe. \\
+    \midrule
+
+    \textbf{Convenio de donación} & Acuerdo entre la asociación y una
+    entidad donante (Mercadona, Bancosol, etc.) que especifica duración y
+    cantidades. \\
+    \midrule
+    
+    \textbf{Universo} & Término utilizado por la coordinación para referirse
+    a la vista agregada de toda la actividad de la asociación. \\
+    \midrule
+
+    \textbf{Ley 1/2025} & Ley 1/2025, de 1 de abril, de prevención de las
+    pérdidas y el desperdicio alimentario. \\
+    \midrule
+    
+    \textbf{Puente analógico-digital} & Conjunto de funcionalidades que
+    permiten que voluntarios no digitalizados sigan trabajando con planillas
+    de papel cuyos datos se cargan posteriormente al sistema. \\
+    \midrule
+    
+    \textbf{CRM} & \emph{Customer Relationship Management}. Sistema de
+    gestión de relaciones con clientes; utilizado aquí como referencia
+    conceptual. \\
+    \midrule
+    
+    \textbf{ERP} & \emph{Enterprise Resource Planning}. Sistema de
+    planificación de recursos empresariales. \\
+    \midrule
+    
+    \textbf{DGR / ERS} & Documento General de Requisitos / Especificación de
+    Requisitos de Software. \\
+    \midrule
+    
+    \textbf{MVC} & \emph{Model-View-Controller}. Un patrón de diseño de 
+    software que separa la lógica de negocio, la interfaz de usuario y la capa de 
+    persistencia. \\
+    \midrule
+    
+    \textbf{DTO} & \emph{Data Transfer Object}. Objeto de transferencia de
+    datos entre capas. \\
+    \midrule
+
+    \textbf{JWT} & \emph{JSON Web Token}. Mecanismo de autenticación basado
+    en tokens firmados. \\
+    \midrule
+
+    \textbf{API} & \emph{Application Programming Interface}. Interfaz que permite la comunicación entre diferentes componentes de un sistema. \\
+    \midrule
+
+    \textbf{REST} & \emph{Representational State Transfer}. Estilo de arquitectura para el diseño de interfaces de API cliente-servidor sin estado. El frontend utiliza métodos HTTP estándar para acceder a recursos del backend. \\
+    \midrule
+
+    \textbf{WCAG} & \emph{Web Content Accessibility Guidelines}. Pautas de accesibilidad para contenido web. \\
+    \midrule
+
+    \textbf{SaaS} & \emph{Software as a Service}. Modelo de entrega de software en el que las aplicaciones son gestionadas y distribuidas a través de Internet. \\
+    \midrule
+
+\end{longtable}
+
+
+\newpage
+
+
+\subsection{Referencias}
+\begin{enumerate}
+    \item \textbf{Ley 1/2025, de 1 de abril, de prevención de las pérdidas y el desperdicio
+   alimentario}. Boletín Oficial del Estado. Disponible en: \url{https://www.boe.es/eli/es/l/2025/04/01/1}
+
+    \item \textbf{Transcripción de la primera entrevista} con Ezequiel (coordinación),
+   realizada el 16 de abril de 2026 en la Parroquia Nuestra Señora de las
+   Angustias (El Palo). Duración: 40 minutos.
+
+    \item \textbf{Transcripción de la segunda entrevista} con Ezequiel (coordinación) y
+   Miguel (contabilidad), realizada el 23 de abril de 2026 en la misma
+   ubicación. Duración: 61 minutos.
+
+    \item \textbf{Render $-$ Documentation}. Plataforma de despliegue en la nube utilizada
+   para alojar la aplicación. Disponible en: \url{https://render.com/docs}
+
+    \item \textbf{Vibe App Scanner $-$ How to Secure Your Render App}. Guía de buenas
+   prácticas de seguridad para aplicaciones desplegadas en Render. Disponible en: \url{https://vibeappscanner.com/how-to-secure-render-app}
+
+    \item \textbf{Web Content Accessibility Guidelines (WCAG) 2.2}. W3C Recommendation. Disponible en: \url{https://www.w3.org/TR/WCAG22/}
+    
+    \item \textbf{Spring Security $-$ Reference Documentation}. Disponible en: \url{https://docs.spring.io/spring-security/reference/}
+    
+    \item \textbf{Angular $-$ Official Documentation}. Disponible en: \url{https://angular.dev/docs}
+    
+    \item \textbf{PostgreSQL $-$ Official Documentation}. Disponible en: \url{https://www.postgresql.org/docs/}
+    
+    \item \textbf{Patil, S}. (2024).\ \textit{How Angular and Spring Boot Form a
+    Production-Ready Full-Stack Architecture}. Medium.
+    \par
+    \noindent 
+    \url{https://medium.com/@sanikapatil0213/how-angular-and-spring-boot-form-a-production-ready-full-stack-architecture-1bd63f3a84a2}
+\end{enumerate}
+
+\newpage
+
+\subsection{Resumen}
+El resto del documento se organiza de la siguiente manera:
+\begin{itemize}
+  \item \textbf{Capítulo 2 — Descripción General.} Sitúa el producto en su contexto.
+  Describe la perspectiva del producto en relación con su entorno tecnológico y
+  organizativo, presenta un resumen de alto nivel de las funciones que ofrecerá
+  y enumera los requisitos previstos para futuras versiones del sistema.
+
+  \item \textbf{Capítulo 3 — Atributos del Sistema.} Recoge los atributos de calidad del
+  sistema (las llamadas \textit{-ilities}: fiabilidad, mantenibilidad, seguridad,
+  etc.), las restricciones que limitan las decisiones de diseño y desarrollo
+  (legales, técnicas, de despliegue) y las alternativas tecnológicas que se
+  consideraron y descartaron antes de optar por el desarrollo a medida.
+
+  \item \textbf{Capítulo 4 — Descripción de Participantes y Usuarios.} Identifica todas
+  las partes afectadas por el proyecto, describe los perfiles de los
+  participantes (directiva, gestoría, entidades financiadoras) y de los
+  usuarios finales (voluntarios y amigos), presenta la visión general del
+  producto, detalla el entorno de despliegue, recoge las suposiciones y
+  dependencias asumidas por el equipo y aborda los aspectos económicos del
+  proyecto (precio, coste, licencias e instalación).
+
+  \item \textbf{Capítulo 5 — Requisitos Funcionales.} Núcleo del documento. Describe de
+  forma estructurada las acciones que el sistema debe ser capaz de realizar,
+  organizadas en nueve grandes bloques: gestión de cuentas y autenticación,
+  control de acceso y roles, gestión del amigo, servicios y agendamiento,
+  inventario y lavandería, trazabilidad alimentaria, gestión contable,
+  reportes y puente analógico-digital.
+
+  \item \textbf{Capítulo 6 — Requisitos No Funcionales.} Establece las restricciones bajo
+  las cuales debe operar el sistema: seguridad, autenticación, autorización,
+  validación, auditoría, persistencia, rendimiento, usabilidad, accesibilidad,
+  despliegue, operación y cumplimiento legal.
+
+  \item \textbf{Capítulo 7 — Modelo del Dominio.} Presenta el modelo conceptual de las
+  entidades del sistema, sus atributos y las relaciones que las vinculan,
+  acompañado de una descripción narrativa que explica cómo se navega el
+  modelo, qué entidad gobierna a cuáles y cómo está previsto que el dominio
+  evolucione.
+\end{itemize}

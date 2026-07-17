@@ -1,0 +1,359 @@
+\section{Descripción de Participantes y Usuarios}
+Para diseñar un sistema efectivo es necesario identificar a todas las partes
+afectadas por el proyecto y comprender sus necesidades reales. Este capítulo
+distingue entre \textbf{participantes} (personas u organizaciones afectadas por el
+proyecto pero que no son usuarios directos del sistema) y \textbf{usuarios} (personas
+que interactúan directamente con la aplicación), describe sus perfiles, presenta
+una visión general del producto desde la perspectiva de cada uno, detalla el
+entorno de despliegue, recoge las suposiciones y dependencias del proyecto y
+aborda los aspectos económicos.
+
+\subsection{Resumen de los Participantes}
+A continuación se enumeran las partes que se ven afectadas por el proyecto sin
+ser necesariamente usuarios directos de la aplicación.
+
+\vspace{5mm}
+
+\begin{longtable}[]{@{}
+    % Metadatos de la tabla
+        p{0.28\columnwidth}
+        p{0.22\columnwidth}
+        p{0.50\columnwidth}@{}}
+
+    \caption{Resumen de Participantes} \\
+
+    % Configuración de la tabla para repetir encabezados en cada página
+    \toprule
+    \textbf{Participante} & \textbf{Naturaleza} & \textbf{Implicación en el proyecto} \\
+    \midrule
+    \endfirsthead % chktex 1
+
+    \toprule
+    \textbf{Participante} & \textbf{Naturaleza} & \textbf{Implicación en el proyecto} \\
+    \midrule
+    \endhead % chktex 1
+
+    \midrule
+    \multicolumn{2}{r}{\small\emph{Continúa en la siguiente página}} \\
+    \endfoot % chktex 1
+
+    \bottomrule
+    \endlastfoot % chktex 1
+
+    % Cuerpo de la tabla
+    \textbf{Coordinación de la Casa de la Esperanza} & Cliente / Usuario &
+    Promotor del proyecto, principal fuente de requisitos y usuario
+    administrador del sistema (Ezequiel). \\
+    \midrule
+
+    \textbf{Directiva de la asociación} & Cliente / Usuario & Toma
+    decisiones estratégicas sobre la asociación; consume informes y datos
+    agregados del sistema. Incluye contabilidad (Miguel) y otros
+    responsables de área. \\
+    \midrule
+
+    \textbf{Voluntariado operativo} & Usuario & Conjunto de voluntarios que
+    cubren turnos en el centro: café, ropa, duchas, lavandería, recepción.
+    Heterogéneo en cuanto a alfabetización digital. \\
+    \midrule
+
+    \textbf{Voluntariado profesional} & Usuario & Profesionales (abogados,
+    médicos, psicólogos, podólogos, asistentes en extranjería) que prestan
+    servicio especializado de forma puntual o regular. \\
+    \midrule
+
+    \textbf{Amigos atendidos} & Beneficiario / Sujeto de datos & Personas en
+    situación de vulnerabilidad atendidas por la asociación. No son usuarios
+    del sistema, pero sus datos personales constituyen el núcleo de la
+    información gestionada. \\
+    \midrule
+
+    \textbf{Gestoría fiscal externa} & Tercero receptor & Recibe la
+    información contable que la asociación le remite para la presentación de
+    obligaciones fiscales. Interactúa con el sistema de forma indirecta a
+    través de exportaciones. \\
+    \midrule
+
+    \textbf{Entidades financiadoras} & Tercero receptor & Reciben informes
+    de actividad y de gasto con destino a la justificación de subvenciones.
+    Incluyen La Caixa, Ayuntamiento de Málaga y otras entidades públicas y
+    privadas. \\
+    \midrule
+
+    \textbf{Autoridades sanitarias} & Tercero receptor & Receptoras
+    eventuales del cuaderno de trazabilidad alimentaria en caso de
+    inspección, conforme a la Ley 1/2025. \\
+    \midrule
+    
+    \textbf{Entidades donantes con convenio} & Tercero & Bancosol, Mercadona
+    y otras entidades que donan alimentos o bienes a la asociación bajo
+    acuerdos formales. \\
+    \midrule
+
+    \textbf{Donantes particulares} & Tercero & Personas que
+    realizan donaciones puntuales (alimentos, ropa, dinero) sin convenio
+    formal. \\
+    \midrule
+
+    \textbf{Equipo de desarrollo} & Proveedor & Responsable del desarrollo,
+    despliegue y mantenimiento del sistema. Compuesto por un único
+    desarrollador en la fase actual del proyecto. \\
+    \midrule
+    
+    \textbf{Render (proveedor de infraestructura)} & Proveedor técnico &
+    Plataforma de alojamiento gestionado en la nube donde se despliega la
+    aplicación. \\
+\end{longtable}
+
+\newpage
+
+\subsection{Perfiles de los Participantes}
+A continuación se detallan los perfiles de los participantes que no son
+usuarios directos del sistema pero cuyas necesidades, restricciones o
+expectativas afectan al diseño.
+
+\subsubsection{Coordinación}
+\begin{itemize}
+    \item \textbf{Representante:} Ezequiel.
+    
+    \item \textbf{Responsabilidades:} Dirección operativa diaria de la Casa de la Esperanza,
+    relación con voluntariado, decisión última sobre admisión y trato a los
+    amigos, autorización de compras significativas, relación con donantes y
+    entidades externas.
+    
+    \item \textbf{Necesidades respecto al sistema:} Visibilidad completa sobre toda la
+    operación, trazabilidad por persona y
+    por universo, capacidad de delegar acceso granular a otros voluntarios
+    manteniendo el control sobre datos sensibles, herramientas que reduzcan la
+    carga manual y permitan rendir cuentas a la directiva y a financiadores con
+    datos exactos en lugar de porcentajes aproximados
+\end{itemize}
+
+
+\subsubsection{Directiva (Contabilidad)}
+\begin{itemize}
+    \item \textbf{Representante:} Miguel 
+    
+    \item \textbf{Responsabilidades:} Contabilidad de la asociación, relación con la
+    gestoría fiscal, validación de gastos, control financiero, informes a
+    órganos de gobierno y financiadores.
+    
+    \item \textbf{Necesidades respecto al sistema:} Importación automatizada de extractos
+    bancarios, mapeo de conceptos a cuentas contables, generación de asientos
+    sin trabajo manual repetitivo, acceso desde el domicilio a los datos
+    contables, capacidad de consulta autónoma sin depender de la gestoría,
+    trazabilidad de gasto por persona atendida.
+\end{itemize}
+
+
+\subsubsection{Gestoría Fiscal Externa}
+\begin{itemize}
+    \item \textbf{Responsabilidades:} Cierre fiscal de la asociación.
+    
+    \item \textbf{Necesidades respecto al sistema:}  Recibir información estructurada,
+    exportable y trazable de la actividad económica de la asociación.
+    
+    \item \textbf{Restricciones:} El sistema debe poder exportar a
+    formatos estándar (CSV, PDF) compatibles con el flujo de la gestoría. La
+    gestoría no es un usuario del sistema y no se contempla integración
+    técnica en esta versión.
+\end{itemize}
+
+
+\subsubsection{Autoridades Sanitarias}
+\begin{itemize}
+    \item \textbf{Necesidades respecto al sistema:} En caso de inspección, recibir el
+    cuaderno de entradas y salidas alimentarias con la trazabilidad completa
+    exigida por la Ley 1/2025 (lotes, caducidades, temperaturas, prioridad
+    legal, convenios).
+    
+    \item \textbf{Implicaciones de diseño:} El cuaderno debe ser exportable en formato
+    imprimible y debe garantizar la inmutabilidad de los registros una vez
+    cerrado el periodo correspondiente.
+\end{itemize}
+
+
+\subsubsection{Equipo de Desarrollo}
+\begin{itemize}
+    \item \textbf{Composición actual:} Un único desarrollador.
+    
+    \item \textbf{Implicaciones de diseño:} La arquitectura debe favorecer la
+    mantenibilidad por una sola persona, la simplicidad operativa, el uso de
+    herramientas y librerías ampliamente documentadas y la cobertura de
+    pruebas suficiente para detectar regresiones sin necesidad de equipos de
+    QA dedicados.
+\end{itemize}
+
+
+\newpage
+
+\subsection{Perfiles de los Usuarios}
+Los usuarios directos del sistema se agrupan en cinco perfiles, cada uno con
+un rol asociado en el modelo de control de acceso definido en RF2.1. La
+relación entre perfil de usuario y rol no es uno a uno: un mismo voluntario
+puede acumular varios roles si su nivel de implicación lo justifica.
+
+\subsubsection{Adminitrador}
+\begin{itemize}
+    \item \textbf{Rol del sistema:} \texttt{ADMIN}.
+    
+    \item \textbf{Quién asume este perfil:} Coordinación (Ezequiel) y,
+    personas de máxima confianza de la directiva (por ejemplo, Miguel).
+    
+    \item \textbf{Permisos:}
+    \begin{itemize}
+        \item Crear, editar y desactivar cuentas de voluntario.
+        \item Asignar y revocar roles, niveles de seguridad y funciones específicas.
+        \item Habilitar accesos temporales a voluntarios profesionales sobre amigos concretos.
+        \item Acceso completo a todos los datos del sistema.
+        \item Acceso a la gestión financiera y creación de asientos contables.
+        \item Exportación de informes para entidades financiadoras y autoridades.
+        \item Acceso al registro de auditoría.
+    \end{itemize}
+\end{itemize}
+
+
+\subsubsection{Voluntario Operativo}
+\begin{itemize}
+    \item \textbf{Rol del sistema:} \texttt{OPERATIVO}.
+    
+    \item \textbf{Quién asume este perfil:} El voluntariado del centro;
+    personas que cubren turnos de mañana o tarde en tareas como recepción,
+    café, ropa, duchas, lavandería y registro de servicios.
+    
+    \item \textbf{Permisos:}
+    \begin{itemize}
+        \item Consultar y registrar fichas de amigo en niveles de confianza: \texttt{BASICO} (sin
+        acceso a datos sensibles del nivel superior salvo que su nivel de seguridad lo
+        habilite explícitamente) o \texttt{PRIVILEGIADO}.
+        \item Agendar y registrar la prestación de servicios.
+        \item Realizar entregas de ropa y operar el flujo de lavandería.
+        \item Registrar entradas y salidas alimentarias.
+        \item Consultar el stock de armario.
+        \item Sin acceso por defecto al módulo contable ni a notas privadas.
+    \end{itemize}
+\end{itemize}
+
+
+\subsubsection{Voluntario Profesional}
+\begin{itemize}
+    \item \textbf{Rol del sistema:} \texttt{PROFESIONAL}.
+    
+    \item \textbf{Quién asume este perfil:} Profesionales que prestan servicio
+    especializado de forma puntual o regular: abogados, médicos, psicólogos,
+    podólogos, asistentes en extranjería.
+    
+    \item \textbf{Permisos:}
+    \begin{itemize}
+        \item Consultar fichas de los amigos a los que han sido habilitados por la
+        coordinación, incluida la información sensible del área de su
+        especialidad (notas jurídicas para el abogado, notas médicas para el
+        personal sanitario, etc.).
+        \item Registrar nuevas notas y observaciones en el ámbito de su especialidad.
+        \item Sin acceso a información de áreas distintas de la suya, salvo
+        habilitación explícita y temporal por parte del administrador.
+    \end{itemize}
+\end{itemize}
+
+
+\subsubsection{Voluntario Puente}
+\begin{itemize}
+    \item \textbf{Rol del sistema:} \texttt{PUENTE}.
+    
+    \item \textbf{Quién asume este perfil:} Personas que se encuentran en una posición
+    intermedia entre amigo y voluntario. Caso de referencia: Mohamed.
+    
+    \item \textbf{Permisos:}
+    \begin{itemize}
+        \item Permisos básicos de voluntario operativo limitados a las tareas
+        específicas que se le asignen (típicamente: consulta de stock,
+        registro de su propia ropa en lavandería, agendamiento de duchas).
+        \item Sin acceso a datos sensibles de otros amigos ni al módulo contable.
+        \item No puede consultar datos sensibles de
+        sí mismo a través de su sesión de voluntario, sino que debe seguir el
+        procedimiento estándar previsto para los amigos.
+    \end{itemize}
+\end{itemize}
+
+
+\subsubsection{Agente Externo Temporal}
+\begin{itemize}
+    \item \textbf{Rol del sistema:} \texttt{AGENTE\_TEMP}.
+    
+    \item \textbf{Quién asume este perfil:} Profesionales o colaboradores externos a
+    quienes la coordinación necesita conceder acceso muy puntual a una
+    información concreta, durante una ventana de tiempo limitada y sin
+    incorporarlos a la base estable de voluntarios. Por ejemplo, un abogado
+    externo invitado a revisar un expediente jurídico específico.
+    
+    \item \textbf{Permisos:}
+    \begin{itemize}
+        \item Acceso de solo lectura a las entidades específicas habilitadas por el administrador.
+        \item La habilitación incluye una fecha de caducidad explícita pasada la
+        cual el acceso queda revocado automáticamente.
+        \item Toda actividad del agente queda registrada en el log de auditoría con
+        marcado especial.
+    \end{itemize}
+\end{itemize}
+
+
+\subsubsection{Tabla resumen de roles y permisos}
+
+\begin{longtable}[]{
+    @{}p{0.30\columnwidth}
+    p{0.05\columnwidth}
+    p{0.05\columnwidth}
+    p{0.05\columnwidth}
+    p{0.05\columnwidth}
+    p{0.06\columnwidth}@{}}
+
+    \caption{Resumen de Roles y Permisos} \\
+
+    % Configuración de la tabla para repetir encabezados en cada página
+    \toprule
+    \textbf{Operación} & \textbf{Ad} & \textbf{Op} & \textbf{Pro} & \textbf{Pu} & \textbf{Atemp.} \\
+    \midrule
+    \endfirsthead % chktex 1
+
+    \toprule
+    \textbf{Operación} & \textbf{Ad} & \textbf{Op} & \textbf{Pro} & \textbf{Pu} & \textbf{Atemp.} \\
+    \midrule
+    \endhead % chktex 1
+
+    \midrule
+    \multicolumn{2}{r}{\small\emph{Continúa en la siguiente página}} \\
+    \endfoot % chktex 1
+
+    \bottomrule
+    \endlastfoot % chktex 1
+
+    % Cuerpo de la tabla
+    Gestionar cuentas y roles & $\bullet$ & --- & --- & --- & --- \\
+    Habilitar accesos temporales & $\bullet$ & --- & --- & --- & --- \\
+    Crear ficha de amigo (nivel 1) & $\bullet$ & $\bullet$ & --- & --- & --- \\
+    Escalar ficha a nivel 2 & $\bullet$ & $\bullet$ & --- & --- & --- \\
+    Escalar ficha a nivel 3 & $\bullet$ & $\circ$  & --- & --- & --- \\
+    Ver datos sensibles del amigo & $\bullet$ & $\circ$  & $\circ$  & --- & $\circ$  \\
+    Crear nota privada a un amigo & $\bullet$ & $\bullet$  & $\bullet$  & $\bullet$ & $\bullet$  \\
+    Agendar servicios & $\bullet$ & $\bullet$ & $\bullet$ & $\circ$  & --- \\
+    Registrar entrega de ropa & $\bullet$ & $\bullet$ & --- & --- & --- \\
+    Operar lavandería & $\bullet$ & $\bullet$ & --- & $\circ$  & --- \\
+    Registrar entrada/salida alimentaria & $\bullet$ & $\bullet$ & --- & --- & --- \\
+    Consultar stock & $\bullet$ & $\bullet$ & $\bullet$ & $\bullet$ & $\circ$  \\
+    Importar extractos bancarios & $\bullet$ & --- & --- & --- & --- \\
+    Crear asientos contables & $\bullet$ & $\circ$ & --- & --- & --- \\
+    Registrar gastos & $\bullet$ & $\circ$  & --- & --- & --- \\
+    Generar informes & $\bullet$ & $\circ$  & --- & --- & $\circ$  \\
+    Acceder al log de auditoría & $\bullet$ & --- & --- & --- & --- \\
+\end{longtable}
+
+\textbf{Leyenda:} 
+\par
+$\bullet$  permiso completo; 
+\par
+$\circ$  permiso condicional según
+asignación explícita del administrador; 
+\par
+--- sin permiso.
+
+

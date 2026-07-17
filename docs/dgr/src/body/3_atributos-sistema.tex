@@ -1,0 +1,202 @@
+\section{Atributos del Sistema}
+Este capítulo presenta los atributos de calidad que el sistema debe satisfacer, 
+las llamadas \textit{-ilities}, las restricciones que limitan las decisiones de
+diseño y desarrollo, y las alternativas tecnológicas que se evaluaron antes de
+optar por el desarrollo a medida. Los atributos enumerados aquí se concretarán
+posteriormente en requisitos no funcionales medibles en el capítulo 7.
+
+\subsection{Atributos de Calidad}
+\begin{itemize}
+    \item \textbf{Confidencialidad $-$ Prioridad: Crítica.} 
+    Atributo derivado de la seguridad pero específicamente referido a la
+    protección frente a divulgación no autorizada de datos. Las ``notas privadas''
+    de los acompañamientos profesionales sólo deben ser visibles para voluntarios con el rol y 
+    nivel correspondiente.
+
+    \item \textbf{Fiabilidad} 
+    Capacidad del sistema para funcionar correctamente bajo 
+    condiciones normales de uso, minimizando fallos y tiempos de inactividad. Se materializa en la
+    integridad referencial de la base de datos, la atomicidad transaccional de
+    las operaciones que afectan a múltiples entidades (por ejemplo, una entrega
+    de ropa que decrementa el stock y crea un registro histórico) y la copia de
+    seguridad periódica con prueba de restauración.
+
+    \item \textbf{Trazabilidad} 
+    La trazabilidad es una de las 
+    motivaciones centrales del proyecto. Se materializa en el registro inmutable de creaciones,
+    modificaciones y eliminaciones (con identificador del voluntario y marca de
+    tiempo), en el histórico de cambios de las entidades sensibles.
+
+    \item \textbf{Cumplimiento legal} 
+    El sistema debe satisfacer las exigencias documentales y de trazabilidad que
+    imponen dos marcos legales: Ley 1/2025.
+
+    \item \textbf{Mantenibilidad.}  
+    Se materializa en una arquitectura por capas con responsabilidades bien delimitadas, código
+    estructurado en módulos cohesionados, documentación técnica actualizada,
+    cobertura de pruebas suficiente para detectar regresiones.
+
+    \item \textbf{Escalabilidad}
+    El volumen de datos previsto es modesto: la coordinación estima un universo
+    de menos de cien amigos atendidos simultáneamente, en torno a una veintena
+    de voluntarios activos, y un volumen de transacciones diarias del orden de
+    decenas (no de miles ni de millones). El sistema debe funcionar
+    correctamente en este orden de magnitud sin necesidad de optimizaciones
+    costosas, pero la arquitectura debe permitir un crecimiento moderado sin reescritura.
+
+    \item \textbf{Disponibilidad}
+    Una caída de varias horas durante la madrugada no impide la operativa. Sin embargo, debe
+    estar disponible durante los turnos de actividad del centro. Con el plan adecuado de despliegue
+    podemos asegurar una disponibilidad del 99.5\% durante las horas de actividad.
+\end{itemize}
+
+
+\subsection{Restricciones}
+Las restricciones limitan las decisiones de diseño y desarrollo del sistema.
+
+\subsubsection{Restricciones Tecnológicas}
+\begin{itemize}
+    \item \textbf{Backend en Java con Spring Boot:} La elección responde al conocimiento
+    previo del desarrollador, a la madurez del ecosistema Spring para
+    aplicaciones empresariales y a la disponibilidad de Spring Security como
+    base sólida para la implementación de autenticación y autorización.
+
+    \item \textbf{Frontend en Angular:} La elección responde a tres factores:
+    \par
+    \vspace{5mm}
+    Primero,
+    la idoneidad del framework
+    para aplicaciones de formulario intensivas como la presente.
+    \par
+    \vspace{5mm}
+    Segundo, a la sinergia probada con backend Spring
+    Boot: Angular y Spring Boot constituyen una combinación full-stack
+    ampliamente adoptada en entornos de producción, en la que el contrato
+    entre ambos lados es una API REST sobre HTTPS y la seguridad se articula
+    mediante Spring Security con tokens JWT validados en cada petición. Esta
+    arquitectura permite que el frontend opere como una aplicación
+    desacoplada (\textit{Single Page Application}) que consume servicios sin estado,
+    lo que facilita el despliegue independiente de cada capa, la
+    escalabilidad horizontal y la sustitución del frontend en el futuro sin
+    reescritura del backend. 
+    \par
+    \vspace{5mm}
+    Tercero, al ecosistema maduro de
+    herramientas que Angular proporciona: enrutamiento, formularios
+    reactivos con validación, interceptores HTTP (ideales para inyectar el
+    token JWT en cada petición y para gestionar errores de autorización de
+    forma centralizada), y soporte de pruebas unitarias y end-to-end
+    integrado. La sinergia técnica entre Angular y Spring Boot está
+    ampliamente documentada en la literatura de arquitectura full-stack
+    contemporánea [10].
+    % TODO:
+    % Deberíamos detallar la sinergia con sequence diagrams en algún Apéndice de acuerdo a los flujos en:
+    % https://medium.com/@sanikapatil0213/how-angular-and-spring-boot-form-a-production-ready-full-stack-architecture-1bd63f3a84a2
+
+    \item \textbf{Base de datos PostgreSQL:} La elección responde a su integración nativa con Render además de 
+    la disponibilidad de cifrado de columna nativo (pgcrypto) para proteger los datos sensibles, y su
+    cumplimiento estricto del estándar SQL\@.
+
+    \item \textbf{Empaquetado mediante Docker.} Garantiza reproducibilidad del entorno entre desarrollo, 
+    pruebas y producción además de permitir una BD PostgreSQL local desechable idéntica al de producción sin instalar nada en el sistema.
+
+    \item \textbf{Despliegue en Render.} Plataforma de alojamiento gestionado en la
+    nube. Implica aceptar las restricciones de los planes contratados. Sin embargo, ofrece 
+    un nivel de suscripción gratuito para pruebas o demos (30 días máximos). 
+
+    \item \textbf{Comunicación frontend-backend exclusivamente mediante API REST sobre HTTPS.}
+\end{itemize}
+
+
+\subsubsection{Restricciones de Hardware y Entorno}
+\begin{itemize}
+    \item El sistema debe ser accesible desde dispositivos con navegadores web modernos, incluyendo 
+    ordenadores de escritorio, portátiles, tabletas y smartphones. No se requiere compatibilidad con 
+    navegadores obsoletos.
+    \item El sistema debe operar en condiciones de conectividad doméstica
+    estándar, es decir, no presupone del uso de un ancho de banda empresarial para su funcionamiento correcto.
+\end{itemize}
+
+
+\subsubsection{Restricciones Operativas}
+\begin{itemize}
+    \item \textbf{Auditoría obligatoria de operaciones sensibles.} Toda creación,
+    modificación o eliminación de información relevante (especialmente datos
+    sensibles, entregas, gastos, asientos contables y entradas alimentarias)
+    debe quedar registrada con identificador del voluntario, marca de
+    tiempo y, en caso de modificación, valor anterior.
+
+    \item \textbf{Idioma único: español.} La interfaz, los mensajes de error, la
+    documentación de usuario y los informes generados se producen en español de España.
+\end{itemize}
+
+
+
+\subsection{Alternativas Consideradas}
+Antes de optar por el desarrollo a medida, durante las entrevistas se
+evaluaron explícita o implícitamente varias alternativas. A continuación se
+documentan las consideradas y los motivos que llevaron a descartarlas.
+
+
+\subsubsection{Continuar con Hojas de Cálculo en Google Drive}
+La alternativa más sencilla y económica habría sido sistematizar las hojas
+de cálculo actuales en una estructura compartida en Google Drive. Esta
+opción se descartó por \textbf{concurrencia limitada} (aunque \textit{Google Sheets} permite edición
+simultánea, no soporta de forma fiable la operación concurrente de
+múltiples voluntarios sobre las mismas filas), \textbf{carga manual elevada}, \textbf{dificultad para generar informes complejos} 
+debido a la descentralización de la información en múltiples hojas, y \textbf{riesgo de pérdida de datos} por errores humanos e 
+\textbf{imposibilidad de cumplir la Ley 1/2025} de forma cómoda y fiable.
+
+
+\subsubsection{CiviCRM}
+CiviCRM es un CRM de código abierto orientado a organizaciones sin ánimo
+de lucro gratuito. Fue propuesto por uno de los
+colaboradores de la directiva y evaluado durante la segunda entrevista más impone 
+uso sistema operativo Linux que no se posee ni se desea. Además, gira en torno a
+donantes, contribuciones y campañas de captación de fondos; su modelo
+no se ajusta de forma natural al concepto de ``amigo con ficha
+progresiva por nivel de confianza'' que es central al proyecto.
+
+
+\subsubsection{Salesforce}
+Salesforce ofrece una variante de su plataforma orientada a entidades sin
+ánimo de lucro, con descuentos significativos y dotación gratuita inicial
+de licencias (NPSP / Power of Us). Se evaluó y se descartó por los
+siguientes motivos:
+\begin{itemize}
+    \item Aunque la dotación inicial es
+    gratuita, es altamente limitada en cuanto al número de usuarios. 
+    \item La ampliación de licencias, el almacenamiento adicional y el
+    soporte de funcionalidades avanzadas implican costes recurrentes elevados.
+    \item Ofrece una
+    funcionalidad muy superior a la requerida, gran parte de la cual no
+    se aprovecharía, lo que se traduce en una interfaz innecesariamente
+    compleja para los voluntarios.
+    \item Imposibilidad de unificar dominios de trazabilidad alimentaria
+   y la contabilidad operativa para
+    cuentas y mapeo de extractos bancarios; escapan al alcance natural de
+    un CRM y exigirían integraciones con sistemas adicionales.
+\end{itemize}
+
+
+\subsubsection{ERPs de Código Abierto}
+Se descartaron por motivos similares a los de CiviCRM y Salesforce: sobre-dimensionamiento,
+inadecuación conceptual al dominio y dificultad para implementar el
+módulo específico de trazabilidad alimentaria. Los consultados fueron ERPNext y Dolibarr.
+
+
+\subsubsection{Conclusión}
+La combinación de tres factores hace inviables las alternativas evaluadas y
+justifica el desarrollo a medida:
+\begin{enumerate}
+    \item La necesidad de implementar el \textbf{módulo de trazabilidad alimentaria de la
+    Ley 1/2025} específico del dominio de ayuda comunitaria en cualquier
+    solución elegida.
+
+    \item La necesidad de unificar en una misma aplicación la gestión de personas,
+    servicios, inventario, alimentación y contabilidad, lo que ningún
+    producto comercial ofrece de forma nativa.
+
+    \item La restricción presupuestaria que excluye soluciones SaaS de coste
+    mensual significativo.
+\end{enumerate}

@@ -1,0 +1,728 @@
+\section{Requisitos Funcionales}
+Este capítulo describe de forma estructurada \textbf{las acciones que el sistema debe
+ser capaz de realizar} para cumplir los objetivos establecidos en los capítulos
+anteriores. 
+\par
+\vspace{4mm}
+Cuando un requisito tiene reglas de negocio asociadas o
+condiciones de error que merecen detalle, estas se listan bajo
+la descripción principal.
+
+\subsection{RF1 Gestión de Cuentas y Autenticación}
+\begin{itemize}
+    \item \textbf{RF1.1 Creación de cuentas de voluntario} \\
+    El sistema debe permitir al usuario con rol Admin o voluntario con rol adecuado crear nuevas cuentas de voluntario en el sistema. 
+    Los datos que se registran son:
+    \begin{description}
+        \item[-] Nombre.
+        \item[-] Apellidos.
+        \item[-] Teléfono.
+        \item[-] DNI. % chktex 13
+        \item[-] Correo electrónico.
+        \item[-] Rol.
+        \item[-] Nivel de seguridad.
+        \item[-] Funciones específicas asignadas.
+        \item[-] Fecha de creación de la cuenta al finalizar la creación.
+    \end{description}
+    \par
+    La creación de una nueva cuenta queda registrada en el log de auditoría con el nombre de la cuenta actualmente autenticada en el sistema.
+    
+    \item \textbf{RF1.2 Visualización de los datos de la cuenta} \\
+    El sistema debe permitir a cualquier voluntario autenticado consultar los
+    datos de su propia cuenta.
+
+    \item \textbf{RF1.3 Edición de los datos de la cuenta} \\
+    El sistema debe permitir a cualquier voluntario autenticado modificar los
+    datos personales de su propia cuenta.
+
+    \item \textbf{RF1.4 Eliminación de cuentas} \\
+    El sistema debe permitir al Admin eliminar definitivamente una cuenta de
+    voluntario sólo si esta no tiene operaciones históricas asociadas.
+    \begin{description}
+        \item[-] Si la cuenta tiene operaciones registradas, la eliminación se rechaza
+        y se ofrece la alternativa de desactivación (RF1.5).
+        \item[-] La eliminación deja constancia en el log de auditoría con el
+        identificador y nombre de la cuenta eliminada.
+    \end{description}
+
+    \item \textbf{RF1.5 Desactivación de cuentas} \\
+    El sistema debe permitir al Admin desactivar la cuenta de un voluntario sin eliminarla del sistema.
+    \begin{description}
+        \item[-] La desactivación es reversible por el Admin en cualquier momento.
+        \item[-] Una cuenta desactivada no permite inicio de sesión.
+    \end{description}
+
+    \item \textbf{RF1.6 Inicio de sesión} \\
+    El sistema debe permitir a un voluntario iniciar sesión introduciendo su
+    correo electrónico y contraseña.
+    \begin{description}
+        \item[-] Tras un inicio de sesión correcto, el sistema emite un token JWT con
+        validez limitada que el cliente almacena en memoria del SPA.\@
+        \item[-] Los intentos fallidos quedan registrados en el log de auditoría. Varios intentos fallidos 
+        consecutivos provoca un bloqueo temporal el inicio de sesión.
+    \end{description}
+
+    \item \textbf{RF1.7 Cierre de sesión} \\
+    El sistema debe permitir a un voluntario cerrar sesión de forma explícita invalidando el token JWT 
+    del lado del cliente.
+    \begin{description}
+        \item[-] El sistema debe ofrecer cierre de sesión automático tras un periodo
+        configurable de inactividad.
+    \end{description}
+
+    \item \textbf{RF1.8 Recuperación de contraseña} \\
+    El sistema debe permitir a un voluntario solicitar el restablecimiento de
+    su contraseña en caso de olvido.
+\end{itemize}
+
+
+
+
+\subsection{RF2 Control de Acceso y Roles}
+\begin{itemize}
+    \item \textbf{RF2.1 Roles del sistema} \\
+    El sistema debe implementar los cinco roles definidos en la sección 4.3, cada uno
+    con su matriz de permisos por defecto: \texttt{ADMIN}, \texttt{OPERATIVO},
+    \texttt{PROFESIONAL}, \texttt{PUENTE} y \texttt{AGENTE\_TEMP}.
+
+    \item \textbf{RF2.2 Asignación de funciones específicas} \\
+    El sistema debe permitir al Admin asignar a un voluntario, además de su
+    rol, un conjunto de funciones específicas que limiten o amplíen los
+    permisos por defecto del rol.
+    \begin{description}
+        \item[-] Las funciones específicas no pueden otorgar a un voluntario
+        capacidades que su rol no le permita por diseño (un \texttt{OPERATIVO} no
+        puede recibir la capacidad \texttt{IMPORTAR\_EXTRACTOS}, exclusiva del Admin).
+    \end{description}
+
+    \item \textbf{RF2.3 Niveles de visibilidad de datos sensibles} \\
+    El sistema debe asignar a cada voluntario uno de los niveles de
+    seguridad descritos en la sección 4.3: \texttt{BASICO} o \texttt{PRIVILEGIADO}.
+    \begin{description}
+        \item[-] El nivel \texttt{BASICO} ve únicamente los datos no sensibles de la ficha del amigo y
+        los servicios prestados a él más no el motivo o notas que justifiquen esos servicios.
+        \item[-] El nivel \texttt{PRIVILEGIADO} ve todos los datos. El Admin tiene siempre nivel y puede otorgarlo a otros voluntarios.
+    \end{description}
+
+    \item \textbf{RF2.4 Habilitación temporal de acceso} \\
+    El sistema debe permitir al Admin habilitar a un voluntario profesional
+    acceso de lectura a los datos sensibles de un amigo concreto durante una
+    ventana de tiempo limitada.
+    \begin{description}
+        \item[-] La habilitación se asocia al par voluntario-amigo y a una fecha de
+        caducidad. Alcanzada la fecha de caducidad, el acceso se revoca automáticamente sin intervención manual.
+        \item[-] Toda actividad realizada bajo una habilitación temporal queda
+        registrada en el log de auditoría con marcado especial.
+    \end{description}
+    
+    \item \textbf{RF2.5 Revocación de habilitaciones temporales} \\
+    El sistema debe permitir al Admin revocar una habilitación temporal antes
+    de su caducidad.
+    \begin{description}
+        \item[-] La revocación es inmediata: la siguiente petición del voluntario
+        afectado falla con código de autorización denegada.
+        \item[-] La revocación queda registrada en el log de auditoría.
+    \end{description}
+    
+    % FIXME: No se interpretar este requisito. ¿Qué es exactamente la "verificación de autorización en backend"?
+    \item \textbf{RF2.6 Verificación de autorización en backend} \\
+    El sistema debe verificar las reglas de autorización en el lado del
+    servidor para toda operación que acceda a datos sensibles o que
+    modifique el estado del sistema.
+\end{itemize}
+
+
+
+
+\subsection{RF3 Gestión de Amigo}
+\begin{itemize}
+    \item \textbf{RF3.1 Creación de ficha mínima} \\
+    El sistema debe permitir crear una ficha de amigo introduciendo
+    únicamente nombre.
+    \begin{description}
+        \item[-] El cambio de nivel queda registrado en el log de auditoría con 
+        identificador del voluntario que lo realiza y timestamp.
+        \item[-] La creación de la ficha queda registrada en el log de auditoría.
+        \item[-] Se registra la fecha de creación en su ficha. 
+    \end{description}
+    \begin{itemize}
+        \item \textbf{RF3.1.1 Registro de entrega objetos} \\
+        En cualquier nivel de confianza (RF3.2) está disponible una caja de texto donde se registran objetos o pertenencias 
+        del amigo al momento de entrar en el centro. Si son más de uno deben separarse por comas (, ) para que el sistema los procese % chktex 37
+        correctamente y se muestren en la ficha del amigo en forma de listado de checkboxes. Caso paradigmático: amigo entrega pasaporte/DNI para que se guarde en la caja 
+        fuerte del centro. En su lugar, se les otorga una copia.
+        \begin{description}
+            \item[-] El texto escrito aparecerá en la ficha correspondiente del amigo (RF3.4). Puede dejarse en blanco.
+        \end{description}
+        \item \textbf{RF3.1.2 Registro de devolución de objetos} \\
+        El sistema registra en el log de auditoría la devolución de un objeto a un amigo con el nombre del usuario actualmente autenticado que realizó la devolución. Se actualiza consecuentemente su ficha de amigo 
+        para reflejar que el objeto ya no está en posesión del centro. Caso paradigmático: se devuelve el DNI original al amigo para realizar un trámite legal.
+    \end{itemize}
+
+    \item \textbf{RF3.2 Escalado del nivel de confianza}
+    \begin{itemize}
+        \item \textbf{RF3.2.1 Nivel 1 $-$ Anónimo} \\
+        Estado inicial. Campos disponibles: nombre y, opcionalmente, una descripción corta.
+        \item \textbf{RF3.2.2 Nivel 2 $-$ Frecuente} \\
+        Tras varias visitas o cuando la coordinación lo decida. Habilita los
+        campos como pueden ser: apellidos, fecha de nacimiento, género, tallas (ropa y
+        calzado), idioma principal, teléfono.
+        \item \textbf{RF3.2.3 Nivel 3 $-$ Entrevistado} \\
+        Tras una entrevista de profundidad. Habilita los campos: DNI o
+        documento equivalente (NIE, pasaporte), nacionalidad, dirección, datos
+        sensibles (situación administrativa, médica, psicológica, jurídica),
+        notas privadas.
+    \end{itemize}
+    
+    \item \textbf{RF3.3 Edición de ficha} \\
+    El sistema debe permitir editar los campos disponibles en el nivel actual de la ficha.
+    \begin{description}
+        \item[-] Cada modificación queda registrada en el log de auditoría con valor 
+        anterior, valor nuevo, voluntario y marca de tiempo.
+        \item[-] Todos los campos son editables por el Admin o voluntariado con permisos adecuados.
+    \end{description}
+    
+    \item \textbf{RF3.4 Visualización de ficha} \\
+    El sistema debe permitir visualizar la ficha de un amigo aplicando las
+    reglas de visibilidad por nivel de seguridad descritas en RF2.3.
+    
+    \item \textbf{RF3.5 Búsqueda y listado de amigos} \\
+    El sistema debe permitir buscar y listar amigos aplicando filtros por
+    nombre, alias, nivel de confianza y fecha de última visita mostrando información acorde a
+    el nivel de seguridad del voluntario que consulta.
+    
+    
+    \item \textbf{RF3.6 Histórico individual del amigo}\hypertarget{RF3.6}{} \\
+    El sistema debe mantener y mostrar para cada amigo el histórico
+    completo de su relación con la asociación:
+    \begin{description}
+        \item[-] Servicios solicitados, agendados y prestados (con fecha, voluntario, observaciones).
+        \item[-] Entregas materiales recibidas (prenda, talla, fecha, voluntario).
+        \item[-] Operaciones de lavandería (entrada de prenda propia, devolución).
+        \item[-] Entradas y salidas alimentarias asociadas (cuando aplique).
+        \item[-] Gastos vinculados al amigo (RF7.6).
+        \item[-] Comunicaciones externas registradas (RF3.8).
+        \item[-] Cambios de nivel de confianza con fechas y motivos.
+    \end{description}
+
+    \item \textbf{RF3.7 Registro de tallas} \\
+    El sistema debe almacenar las tallas de ropa y calzado del amigo.
+    
+    \item \textbf{RF3.8 Trazabilidad de comunicaciones externas} \\
+    El sistema debe permitir registrar manualmente comunicaciones externas
+    realizadas en nombre del amigo o relacionadas con su expediente, con el
+    fin de mantener un historial consolidado.
+    \begin{description}
+        \item[-] Tipos de comunicación: correo electrónico, llamada telefónica, gestión presencial, documento enviado o recibido.
+        \item[-] Cada comunicación se registra con: tipo, contraparte (entidad o persona externa), fecha, asunto y notas opcionales.
+    \end{description}
+
+    \item \textbf{RF3.9 Notas privadas} \\
+    El sistema debe permitir asociar notas privadas a la ficha de un amigo. Son
+    visibles únicamente para voluntarios con nivel de seguridad \texttt{PRIVILEGIADO} o
+    con habilitación temporal vigente al área correspondiente más cualquier voluntario puede añadir notas. 
+    Caso paradigmático: un amigo le cuenta su historia por partes a diferentes voluntarios (con los que más simpatiza será más honesto). Registran esas notas puntuales. 
+    Al cabo de varias notas se puede armar una linea temporal completa de la vida del amigo.
+    \begin{description}
+        \item[-] Las notas son inmutables una vez guardadas: no se editan, sino que se
+        añaden notas adicionales que matizan o corrigen las previas.
+        \item[-] Cada nota lleva identificador del voluntario autor y un timestamp de creación.
+    \end{description}
+\end{itemize}
+
+
+
+
+\subsection{RF4 Servicios y Agendamiento}
+\begin{itemize}
+    \item \textbf{RF4.1 Catálogo extensible de servicios} \\
+    El sistema debe mantener un catálogo de tipos de servicio que el Admin
+    puede ampliar y modificar sin necesidad de cambios en el código.
+    \begin{description}
+        \item[-] La eliminación de un tipo de servicio queda condicionada a la ausencia
+        de servicios prestados de ese tipo en el histórico (en su lugar, se
+        desactiva).
+    \end{description}
+
+    \item \textbf{RF4.2 Agendamiento de un servicio} \\
+    El sistema debe permitir agendar la prestación de un servicio a un amigo en una fecha y franja horaria concretas.
+    \begin{description}
+        \item[-] El sistema verifica al agendar que no se excede la capacidad del turno (RF4.3).
+    \end{description}
+
+    \item \textbf{RF4.3 Control de capacidad por turno} \\
+    El sistema debe impedir el agendamiento de un servicio que excedería la
+    capacidad máxima del turno correspondiente.
+    
+    \item \textbf{RF4.4 Regla de prerrequisito de agendamiento} \\
+    El sistema debe impedir el registro de prestación de un servicio si no existe un agendamiento previo asociado.
+    \begin{description}
+        \item[-] La ducha es el caso paradigmático: sin agendamiento previo no se presta el servicio aunque haya espacio disponible.
+    \end{description}
+    
+    \item \textbf{RF4.5 Registro de prestación de servicio efectiva} \\
+    El sistema debe permitir al voluntario registrar la prestación efectiva
+    del servicio en el momento o tras producirse.
+    \begin{description}
+        \item[-] Resultado posibles: prestado, no prestado por ausencia del amigo, no
+        prestado por ausencia del voluntario, cancelado por la coordinación.
+        \item[-] En caso de prestación, se registran observaciones opcionales del motivo de prestación del servicio 
+        sólo visible para voluntarios autorizados.
+        \item[-] La prestación queda asociada al amigo y aparece en su histórico (RF3.6).
+    \end{description}
+    
+    \item \textbf{RF4.6 Visualización de la agenda} \\
+    El sistema debe permitir visualizar la agenda del centro en formato calendario diario, semanal y mensual.
+    \begin{description}
+        \item[-] Cada agendamiento se muestra con tipo de servicio, amigo asociado y voluntario responsable.
+        \item[-] La vista diaria es accesible directamente desde la pantalla principal.
+        \item[-] Filtros disponibles: por tipo de servicio, por voluntario, por amigo.
+    \end{description}
+    
+    \item \textbf{RF4.7 Reagendamiento y cancelación} \\
+    El sistema debe permitir modificar la fecha, franja o voluntario asignado de un agendamiento, así como cancelarlo.
+    \begin{description}
+        \item[-] Cualquier modificación queda registrada en el log de auditoría.
+        \item[-] La cancelación no elimina el registro: lo marca como cancelado con motivo opcional y voluntario que cancela.
+    \end{description}
+\end{itemize}
+
+
+
+
+\subsection{RF5 Inventario, Entregas y Lavandería}
+\begin{itemize}
+    \item \textbf{RF5.1 Cuaderno de Entradas y Salidas} \\
+    El sistema debe mantener un inventario del stock disponible en el
+    armario general, organizado por tipo de prenda y talla.
+    \begin{description}
+        \item[-] El sistema muestra el inventario en una vista de cuadrícula que
+        permite filtrar por tipo y talla. 
+    \end{description}
+
+    \item \textbf{RF5.2 Registro de entrada de stock} \\
+    El sistema debe permitir registrar la entrada de prendas donadas al
+    armario general.
+    \begin{description}
+        \item[-] La entrada incrementa automáticamente el stock correspondiente.
+        \item[-] Es posible registrar varias prendas en una misma operación (entrada por lotes). 
+    \end{description}
+
+    \item \textbf{RF5.3 Registro de entrega de prenda} \\
+    El sistema debe permitir registrar la entrega de una prenda concreta a un amigo.
+    
+    \begin{itemize}
+        \item \textbf{RF5.3.1 Decremento automático de stock} \\
+        La entrega decrementa automáticamente la cantidad disponible de la
+        combinación tipo-talla entregada en una unidad.
+        \item \textbf{RF5.3.2 Reglas de frecuencia configurables} \\
+        El sistema debe aplicar reglas de frecuencia configurables que limiten
+        la entrega repetida del mismo tipo de prenda al mismo amigo en un
+        periodo dado.
+        \begin{description}
+            \item[-] Caso paradigmático: una unidad de calzado por amigo cada 3 meses.
+            \item[-] Si la regla se incumple, el sistema avisa al voluntario y exige justificación o aprobación de un Admin.
+            \item[-] Las excepciones quedan registradas en el log de auditoría. 
+        \end{description}
+        \item \textbf{RF5.3.3 Integridad ante stock insuficiente} \\
+        El sistema debe impedir la entrega de una prenda cuya cantidad disponible es cero. 
+        Ni siquiera debe mostrarse como opción seleccionable en el proceso de entrega.
+    \end{itemize}
+
+    \item \textbf{RF5.4 Alertas de reposición} \\
+    El sistema debe permitir definir, por combinación tipo-talla, un umbral
+    mínimo de stock por debajo del cual se genera una alerta visual en el
+    panel del armario.
+
+    \item \textbf{RF5.5 Visualización del histórico de lavandería} \\
+    El sistema debe ofrecer una vista del histórico de lavandería tanto a
+    nivel global del centro (todas las prendas en proceso) como a nivel
+    individual del amigo.
+    \begin{description}
+        \item[-] El histórico individual aparece en la ficha del amigo (RF3.6).
+        \item[-] El histórico global es accesible desde el módulo de inventario.
+    \end{description}
+\end{itemize}
+
+
+
+
+\subsection{RF6 Trazabilidad Alimentaria (Cumplimiento Ley 1/2025)}
+\begin{itemize}
+    \item \textbf{RF6.1 Registro de entrada de alimento} \\
+    El sistema debe permitir registrar la entrada de alimentos al centro,
+    con todos los datos necesarios para satisfacer las exigencias de
+    trazabilidad de la Ley 1/2025.
+    \begin{itemize}
+        \item \textbf{RF6.1.1 Origen del alimento} \\
+        Cada entrada debe categorizarse según su origen:
+        \begin{description}
+            \item[-] Compra propia: realizada por la asociación. Requiere ticket de compra asociado.
+            % \item[-] Donación de entidad con convenio: requiere convenio activo registrado (RF6.x) y, cuando proceda, albarán de entrega. % No se incluye en esta fase 
+            \item[-] Donación de entidad sin convenio: para donaciones puntuales de entidades sin acuerdo formal.
+            \item[-] Donación particular: Persona que aporta espontáneamente. En este caso, el ticket suele no estar disponible y debe quedar documentado el motivo.
+        \end{description}
+        \par 
+        Todo ticket o albarán recibido debe almacenarse físicamente y estar disponible para auditoría.
+        \item \textbf{RF6.1.2 Datos obligatorios de la entrada} \\
+        Independientemente del origen, toda entrada registra: 
+        \begin{description}
+            \item[-] Tipo de producto.
+            \item[-] Categoría general (lácteos, panadería, fruta\ldots)
+            \item[-] Cantidad y unidad (kilos, litros, unidades).
+            \item[-] Fecha de entrada.
+            \item[-] Voluntario que registra.
+            \item[-] Lugar de almacenamiento (despensa, congelador\ldots)
+        \end{description}
+        \item \textbf{RF6.1.3 Datos específicos de seguridad alimentaria} \\
+        Para todo producto perecedero o susceptible de control sanitario:
+        \begin{description}
+            \item[-] Lote del fabricante, cuando esté disponible.
+            \item[-] Fecha de caducidad o consumo preferente.
+            \item[-] Para productos refrigerados: temperatura de recepción.
+            \item[-] Check\footnote{Se refiere a una verificación física, y se marca con un \textit{check} que el estado del producto es aceptable.} de verificación de higiene y estado del producto al recibirse.
+            \item[-] Lugar y método de almacenamiento.
+        \end{description}
+    \end{itemize}
+
+    \item \textbf{RF6.2 Registro de salida de alimento} \\
+    El sistema debe permitir registrar la salida de alimento del stock
+    hacia su consumo o destino final.
+    \begin{description}
+        \item[-] Cada salida incluye: producto, cantidad, fecha, turno (mañana o tarde), tipo de salida y voluntario que registra.
+        \item[-] Tipos de salida: desayuno, merienda, cena, café, comida individual a un amigo, retirada por caducidad, retirada por deterioro.
+        \item[-] La salida decrementa automáticamente el stock disponible.
+        \item[-] Se registra el voluntario que realizo la salida.
+    \end{description}
+
+    \item \textbf{RF6.3 Clasificación por prioridad legal} \\
+    Toda entrada y, cuando aplique, toda salida del sistema deben
+    clasificarse según las cuatro categorías de prioridad de aprovechamiento
+    establecidas por la Ley 1/2025:
+    \begin{description}
+        \item[-] Prioridad 1: Consumo humano. Categoría por defecto.
+        \item[-] Prioridad 2: Alimentación animal.
+        \item[-] Prioridad 3: Subproducto (compostaje, biocombustible).
+        \item[-] Prioridad 4: Residuo.
+        \item[-] Toda salida con prioridad distinta de 1 requiere justificación
+        obligatoria: motivo (caducidad, deterioro, rechazo, otros) y
+        observaciones.
+        \item[-] El sistema mantiene un contador agregado por prioridad para los informes legales.
+    \end{description}
+
+    \item \textbf{RF6.4 Control de stock alimentario} \\
+    El sistema debe mantener una vista de stock alimentario actual
+    diferenciada del armario general (RF5.1), con visibilidad de:
+    \begin{description}
+        \item[-] Cantidad disponible por tipo de producto.
+        \item[-] Lotes activos con sus fechas de caducidad.
+        \item[-] Productos próximos a caducar (umbral configurable por defecto a 7 días).
+        \item[-] Productos caducados pendientes de retirada.
+    \end{description}
+
+    % \item \textbf{RF6.5 Asociación de salida a amigo} \\
+    % El sistema debe permitir, opcionalmente, asociar una salida concreta a un amigo identificado.
+    % \begin{description}
+    %     \item[-] Esta asociación puede incrementar la carga de trabajo de los voluntarios en el día a día. Sin embargo, se 
+    %     considera que refuerza la trazabilidad y permite generar
+    %     informes de consumo individualizado (por ejemplo, \textit{``café tomado por
+    %     Marcos durante el último semestre''}).
+    %     \item[-] La asociación, cuando se usa, aparece en el histórico del amigo (RF3.6). 
+    % \end{description}
+
+    \item \textbf{RF6.5 Generación del cuaderno de trazabilidad} \\
+    El sistema debe generar el cuaderno completo de entradas y
+    salidas alimentarias en un periodo definido, en formato apto para
+    inspección sanitaria.
+    \begin{description}
+        \item[-] Formatos aptos: PDF (impresión) y CSV (análisis).
+        \item[-] Contenido: todas las entradas con sus datos completos (RF6.1), todas
+        las salidas (RF6.2), todos los productos retirados con justificación
+        (RF6.3) y saldo de stock al cierre del periodo.
+        \item[-] El cuaderno generado para un periodo cerrado debe ser inmutable: no
+        puede regenerarse con datos modificados a posteriori sin que quede
+        constancia de la modificación.
+    \end{description}
+
+    \item \textbf{RF6.6 Inmutabilidad de registros cerrados} \\
+    El sistema debe impedir la modificación o eliminación de registros de
+    entrada o salida con antigüedad superior a un umbral configurable (por
+    defecto, 30 días).
+    \begin{description}
+        \item[-] Esta regla protege la integridad documental del cuaderno frente a inspecciones.
+        \item[-] Si una corrección es necesaria tras el cierre, se realiza mediante asientos
+        compensatorios (entrada o salida correctiva con motivo \texttt{Rectificación}), no mediante edición del registro original.
+    \end{description}
+\end{itemize}
+
+\subsection*{RF7 Gestión Financiera y Trazabilidad de Gasto}
+\begin{itemize}
+    \item \textbf{RF7.1 Catálogo de cuentas bancarias y caja} \\
+    El sistema debe permitir registrar y mantener las cuentas a través de
+    las cuales la asociación gestiona sus movimientos.
+    \begin{description}
+        \item[-] Para cada cuenta bancaria: nombre, entidad, número de cuenta 
+        parcialmente enmascarado, tipo (corriente, caja chica, otra), estado (activa, inactiva).
+        \item[-] La caja chica se modela como una cuenta de tipo efectivo.
+        \item[-] Una cuenta no puede eliminarse si tiene asientos asociados; en su lugar, se desactiva. 
+    \end{description}
+
+    \item \textbf{RF7.2 Catálogo de categorías de gasto e ingreso} \\
+    El sistema debe mantener un catálogo de categorías funcionales que el
+    Admin puede ampliar y modificar.
+    \begin{description}
+        \item[-] El catálogo inicial reproduce las categorías que la asociación utiliza actualmente. Ejemplos: Suministros $-$ Agua/Luz, Gastos
+        bancarios, Donaciones recibidas, Tasas de DNI, Medicamentos, productos de higiene, etc.
+        \item[-] La eliminación de una categoría queda condicionada a la ausencia de asientos asociados; en su lugar, se desactiva.
+    \end{description}
+
+    \item \textbf{RF7.3 Catálogo de cuentas contables} \\
+    El sistema debe permitir mantener, opcionalmente, un catálogo de
+    códigos de cuenta contable conformes al criterio que la gestoría
+    utiliza con la asociación.
+\begin{description}
+    \item[-] Cada cuenta contable incluye: código (por ejemplo ``6280'') y nombre descriptivo (por ejemplo ``Suministros $-$ Agua'').
+    \item[-] El uso de cuenta contable en cada asiento es opcional: si la contabilidad llevada por la directiva no lo requiere, este catálogo puede permanecer vacío.
+\end{description}
+
+    \item \textbf{RF7.4 Registro manual de asientos contables} \\
+    El sistema debe ofrecer un formulario para registrar manualmente cada
+    asiento contable, reproduciendo digitalmente el flujo que la
+    contabilidad de la asociación lleva hoy en Excel.
+    \begin{itemize}
+        \item \textbf{RF7.4.1 Campos del asiento} \\
+        \begin{description}
+            \item[-] \texttt{Fecha:} fecha del movimiento. Obligatorio.
+            \item[-] \texttt{Concepto}: descripción libre del movimiento. Obligatorio.
+            \item[-] \texttt{Cuenta bancaria}: cuenta o caja a la que se carga o abona el movimiento (RF7.1). Obligatorio.
+            \item[-] \texttt{Cuenta contable}: código contable asociado (RF7.3). Opcional.
+            \item[-] \texttt{Categoría}: clasificación funcional del movimiento (RF7.2). Obligatorio.
+            \item[-] \texttt{Importe}: cantidad en euros, con signo (negativo para gasto, positivo para ingreso). Obligatorio.
+            \item[-] \texttt{Tipo de gasto}: Casa, Amigo o Mixto (RF7.4.4). Obligatorio para gastos; no aplica a ingresos. 
+            \item[-] \texttt{Amigo vinculado}: ficha del amigo asociado al gasto, sólo habilitado si el tipo es Amigo o Mixto. Opcional pero recomendado.
+            \item[-] \texttt{Servicio vinculado}: servicio del catálogo (RF4.1) al que se asocia el gasto. Opcional.
+            \item[-] \texttt{Referencia al archivo físico}: texto libre donde el usuario puede anotar la ubicación del justificante físico (``Carpeta abril 2026, ticket 7''). Opcional.
+        \end{description}
+        \item \textbf{RF7.4.2 Validación de los datos} \\
+        El sistema debe validar al envío del formulario:
+        \begin{description}
+            \item[-] Los campos obligatorios están cumplimentados.
+            \item[-] El importe es un número con dos decimales máximo.
+            \item[-] Las cuentas y categorías referenciadas existen y están activas.
+        \end{description}
+        \item \textbf{RF7.4.3 Persistencia y auditoría} \\
+        Cada asiento creado queda registrado con:
+        \begin{description}
+            \item[-] Identificador interno único e inmutable.
+            \item[-] Marca de tiempo de creación.
+            \item[-] Voluntario que lo registró.
+            \item[-] Las modificaciones posteriores quedan registradas en el log de
+            auditoría con valor anterior, valor nuevo, voluntario y marca de
+            tiempo (RNF de auditoría).
+        \end{description}
+        \item \textbf{RF7.4.4 Categorización del gasto por destinatario} \\
+        Cada gasto se clasifica obligatoriamente en una de tres categorías de destinatario:
+        \begin{description}
+            \item[-] \texttt{Casa}: gasto puro de la asociación (suministros generales, servicios, insumos comunes).
+            \item[-] \texttt{Amigo}: gasto trazable a un amigo concreto (tasas de DNI, medicamentos prescritos, pasajes individuales).
+            \item[-] \texttt{Mixto}: compra que beneficia simultáneamente a la asociación y sus miembros.
+        \end{description}
+        \par
+        Esta categorización es independiente de la categoría funcional (RF7.2)
+        y permite generar de forma natural los informes de gasto por persona
+        solicitados por la directiva (campos de amigo asociado RF7.4.1).
+    \end{itemize}
+
+    \item \textbf{RF7.5 Búsqueda en historial asientos previos y optimización de rellenado} \\
+    El sistema debe permitir, dentro del formulario de creación de
+    asientos, buscar asientos previos similares y utilizar uno de ellos
+    como plantilla para el nuevo asiento para optimizar el proceso de registro.
+    \begin{description}
+        \item[-] El usuario introduce un término de búsqueda y el sistema devuelve los asientos previos cuyo concepto contiene el
+        término, ordenados por fecha descendente.
+        \item[-] El usuario selecciona un asiento de los resultados y pulsa ``Usar
+        como plantilla'': el formulario se rellena con todos los campos relevantes del asiento seleccionado.
+        \item[-] El asiento original utilizado como plantilla no se modifica: el resultado es siempre un asiento nuevo e independiente.
+    \end{description}
+
+
+    \item \textbf{RF7.6 Autocompletado y prevención de duplicados en campos catalogados} \\
+    Los campos del formulario que apuntan a entidades catalogadas (cuenta
+    bancaria, cuenta contable, categoría, amigo, servicio) deben ofrecer
+    autocompletado y verificación de duplicados.
+    \begin{itemize}
+        \item \textbf{RF7.6.1 Creación de nuevas entradas desde el formulario} \\
+        Para los campos donde está permitido (cuenta bancaria, cuenta
+        contable, categoría), si el valor introducido no existe en el
+        catálogo, el sistema permite crearlo desde el propio formulario sin
+        abandonar la operación de creación de asiento.
+        \par
+        Para los campos cerrados (amigo, servicio), no se permite la
+        creación desde aquí: la entrada debe existir previamente en su
+        pantalla de gestión correspondiente.
+        \item \textbf{RF7.6.2 Detección de posibles duplicados} \\
+        Antes de persistir un valor nuevo en un catálogo, el sistema debe
+        verificar si el valor introducido es similar a alguno existente y,
+        en caso afirmativo, solicitar confirmación al usuario.
+    \end{itemize}
+    
+
+    \item \textbf{RF7.7 Listado y consulta de asientos contables} \\
+    El sistema debe ofrecer una vista de listado de los asientos
+    contables registrados, con capacidades de filtrado por cualquier campo del asiento 
+    y ordenación por cualquier columna del listado.
+    \begin{description}
+        \item[-] Paginación de resultados obligatoria.
+    \end{description}
+
+    \item \textbf{RF7.8 Edición y anulación de asientos contables} \\
+    El sistema debe permitir editar y anular asientos contables dentro de
+    un periodo configurable (30 días por defecto desde la creación); pasado ese periodo, las correcciones se
+    realizan mediante un asiento compensatorio.
+
+
+    \item \textbf{RF7.9 Gestión de caja chica} \\
+    El sistema debe mantener un saldo informativo de la caja chica
+    basado en los asientos asociados a la cuenta de tipo efectivo
+    (RF7.1).
+    \begin{description}
+        \item[-] El saldo se actualiza automáticamente con cada asiento.
+        \item[-] El sistema ofrece una pantalla específica de ``Caja chica'' donde el 
+                Admin puede consultar el saldo actual, el listado de movimientos 
+                recientes y registrar el cuadre periódico (comparación entre saldo 
+                del sistema y efectivo realmente custodiado).
+        \item[-] Las diferencias detectadas en cuadres se registran como asientos de ajuste con motivo explícito.
+    \end{description}
+
+
+    \item \textbf{RF7.10 Consultas e informes de trazabilidad} \\
+    El sistema debe permitir consultar los asientos contables agregados
+    desde múltiples ángulos, generando los indicadores que la directiva
+    necesita para la gestión interna y la justificación a entidades
+    financiadoras (ligado a RF 8.2). Posibles consultas son:
+    \begin{description}
+        % TODO: generar una consulta JPQL concreta para cada caso + una completamente libre a partir de filtros por campos del asiento?
+        \item[-] \textbf{Por amigo}: total invertido en cada amigo en un periodo dado,
+                con desglose por categoría. Responde a la pregunta operativa
+                ``\textit{¿cuánto hemos gastado en Marcos este semestre?}''.
+        \item[-] \textbf{Por categoría funcional}: total por categoría en un periodo
+                dado (por ejemplo, ``gasto total en Suministros $-$ Agua en 2026'').
+        \item[-] \textbf{Por servicio}: total vinculado a cada área de servicio (gasto
+                vinculado a podología, jurídico, etc.).
+        \item[-] \textbf{Por voluntario}: total de asientos registrados por cada
+                voluntario, como mecanismo de control interno.
+        \item[-] \textbf{Por periodo}: comparativa mensual, semestral y anual con
+                evolución frente al periodo equivalente anterior.
+        \item[-] \textbf{Saldo por cuenta bancaria}: ingresos menos gastos, total y desglose por mes.
+    \end{description}
+
+
+\end{itemize}
+
+
+\subsection{RF8 Reportes, Informes y Visualización}
+\begin{itemize}
+    \item \textbf{RF8.1 Panel de indicadores} \\
+    El sistema debe ofrecer una pantalla principal personalizada según el
+    rol del voluntario, que muestra los indicadores más relevantes para su
+    trabajo.
+    \begin{description}
+        \item[-] Para Admin y directiva: total de amigos activos, servicios prestados
+        en el último mes, gasto del mes en curso, alertas pendientes de
+        reposición de stock, convenios próximos a vencer.
+        \item[-] Para Voluntario operativo: agenda del día, stock con alertas, tareas asignadas.
+        \item[-] Los indicadores se calculan con datos en tiempo real, no con capturas periódicas.
+    \end{description}
+
+
+    \item \textbf{RF8.2 Generación de informes numéricos} \\
+    El sistema debe generar informes con cifras numéricas exactas (no porcentajes ni aproximaciones).
+    \begin{description}
+        \item[-] Tipo de informe configurable: actividad general, gasto por categoría,
+        servicios prestados, atención individualizada, trazabilidad
+        alimentaria. 
+        \item[-] Periodo configurable: mes, trimestre, semestre, año, rango libre.
+    \end{description}
+
+
+    \item \textbf{RF8.3 Informes para entidades financiadoras} \\
+    El sistema debe ofrecer plantillas de informe específicas para las
+    entidades financiadoras que solicitan justificación de subvención.
+
+
+    \item \textbf{RF8.4 Informe agregado a nivel de ``universo''} \\
+    El sistema debe generar el informe agregado de actividad de la
+    asociación en un periodo dado, contemplando la visión de ``universo''
+    solicitada explícitamente por la coordinación: visión global de toda la
+    actividad sin tener que reconstruir información a partir de fuentes
+    dispersas.
+    \begin{description}
+        \item[-] Cifras totales de personas atendidas, servicios prestados, alimentos
+        gestionados, ropa entregada, gasto ejecutado. 
+        \item[-] Desglose por tipo de actividad y por mes.
+        \item[-] Indicadores de evolución frente al periodo anterior. 
+    \end{description}
+
+
+    \item \textbf{RF8.5 Exportación de informes} \\
+    Todo informe generado debe poder exportarse en los siguientes formatos:
+    \begin{description}
+        \item[-] PDF:\@ para presentación a entidades externas e impresión.
+        \item[-] CSV:\@ para análisis adicional en hoja de cálculo.
+        \item[-] JSON:\@ para integraciones futuras.
+        \item[-] Las exportaciones de datos sensibles (datos médicos, jurídicos,
+        notas privadas) sólo están disponibles para voluntarios con nivel de
+        seguridad \texttt{PRIVILEGIADO} y quedan registradas en el log de auditoría.
+    \end{description}
+\end{itemize}
+
+\subsection{RF9 Puente Analógico-Digital y Carga Inicial de Datos}
+\begin{itemize}
+    \item \textbf{RF9.1 Impresión de planillas} \\
+    El sistema debe generar planillas imprimibles cuyos campos coinciden
+    exactamente con los de las entidades digitales correspondientes. Cada plantilla tendrá un 
+    identificador único que permita su asociación inequívoca a la entidad digital en el sistema.
+
+
+    \item \textbf{RF9.2 Control de Stock de Ropa} \\
+    El sistema debe ofrecer una pantalla específica de \texttt{Carga analógica} en
+    la que un voluntario introduce los datos contenidos en
+    planillas cumplimentadas a mano.
+    \begin{description}
+        \item[-] La carga debe incluir el identificador de la planilla impresa, lo que
+        permite trazar qué papel originó qué registro digital.
+        \item[-] Los registros cargados de esta manera quedan marcados como \texttt{Origen analógico}
+        para diferenciarlos de los introducidos directamente en sesión, lo
+        que permite identificarlos en informes y auditorías.
+    \end{description}
+
+
+    \item \textbf{RF9.3 Importación de datos históricos} \\
+    El sistema debe permitir importar los datos históricos del centro desde las hojas Excel actuales que mantienen la coordinación.
+    \begin{description}
+        \item[-] Cada sección de la aplicación contará con una lógica de mapeo específica a los campos de la entidad digital destino. 
+    \end{description}
+
+
+    \item \textbf{RF9.4 Validación de la importación} \\
+    El sistema debe ofrecer una validación previa a toda importación
+    masiva, mostrando:
+    \begin{description}
+        \item[-] Número de registros (filas del excel) que se importarán correctamente. 
+        \item[-] Registros con errores de formato (con detalle del error por fila). 
+        \item[-] Resumen estadístico (totales, rangos de fechas). 
+        \item[-] El usuario decide tras la validación si confirma la importación,
+        cancela, o aplica importación parcial sólo de las filas válidas. 
+    \end{description}
+
+
+    \item \textbf{RF9.5 Reversión de importaciones} \\
+    El sistema debe permitir, durante un periodo limitado tras la ejecución
+    (por defecto 24 horas), revertir una importación completa en caso de
+    detectarse problemas no advertidos durante la validación.
+    \begin{description}
+        \item[-] Si se aplica una reversión, quedará registrada en el log de auditoría. 
+        \item[-] Pasado el periodo, la corrección de datos importados erróneamente
+        debe hacerse caso por caso.
+    \end{description}
+\end{itemize}
