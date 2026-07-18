@@ -5,7 +5,7 @@ spring:
     password: ${DB_PASSWORD:BDcasa}
   jpa:
     hibernate:
-      ddl-auto: update # Crea y actualiza las tablas a partir de tus @Entity
+      ddl-auto: update # Crea y actualiza las tablas a partir de @Entity definidos
     show-sql: true
     open-in-view: false
 
