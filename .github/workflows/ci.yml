@@ -2,8 +2,9 @@
 # CI Pipeline
 #
 # En cada push y en cada Pull Request a main, compila
-# el backend y ejecuta las pruebas contra un PostgreSQL efimero.
-# Si algo falla, el PR se marca en rojo y no debería fusionarse.
+# el backend y ejecuta las pruebas contra un PostgreSQL efímero.
+# Si algo falla, el PR se marca en rojo y no se hace merge por
+# la Branch protection rule implementada.
 #
 # Por ahora solo valida (no despliega): el job "deploy" se
 # añadirá cuando conectemos Render al final del desarrollo.
@@ -46,3 +47,5 @@ jobs:
         with:
           name: surefire-reports
           path: backend/target/surefire-reports/
+          if-no-files-found: ignore # En caso que test falla antes de que Surefire genere el informe, continua
+
