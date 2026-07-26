@@ -1,20 +1,27 @@
 package es.uma.tfg.casaesperanza.entity;
 
-import jakarta.persistence.*;
+import es.uma.tfg.casaesperanza.entity.enums.Rol;
+import es.uma.tfg.casaesperanza.entity.enums.NivelSeguridad;
+import es.uma.tfg.casaesperanza.entity.enums.Capacidad;
+import jakarta.persistence.Entity;
 import lombok.Data;
 
-/* Versión Dummy de prueba para el esqueleto */
-@Entity
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+
 @Data
-@Table(name = "voluntario")
+@Entity
 public class Voluntario {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-
-    @Column(nullable = false, length = 100)
     private String nombre;
-
-    @Column(nullable = false, unique = true, length = 254)
+    private String apellido;
+    private int telefono;
+    private String dni;
     private String email;
+    private Rol rol;
+    private NivelSeguridad nivel_seguridad;
+    private Set<Capacidad> funciones_especificas = new HashSet<>();
+    private boolean cuentaActiva = true;
+    private LocalDateTime fecha_creacion;
+
 }
