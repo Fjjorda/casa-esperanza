@@ -12,7 +12,7 @@ la descripción principal.
 \begin{itemize}
     \item \textbf{RF1.1 Creación de cuentas de voluntario} \\
     El sistema debe permitir al usuario con rol Admin o voluntario con rol adecuado crear nuevas cuentas de voluntario en el sistema. 
-    Los datos que se registran son:
+    Los datos que se registran en el formulario son:
     \begin{description}
         \item[-] Nombre.
         \item[-] Apellidos.
@@ -21,11 +21,25 @@ la descripción principal.
         \item[-] Correo electrónico.
         \item[-] Rol.
         \item[-] Nivel de seguridad.
-        \item[-] Funciones específicas asignadas.
-        \item[-] Fecha de creación de la cuenta al finalizar la creación.
+        \item[-] Area profesional del voluntario. 
+        \item[-] Capacidades en el sistema.
     \end{description}
     \par
-    La creación de una nueva cuenta queda registrada en el log de auditoría con el nombre de la cuenta actualmente autenticada en el sistema.
+    Adicionalmente, el sistema registrará automáticamente la siguiente información de la cuenta en todo momento:
+    \begin{description}
+        \item[-] Estado de la cuenta.
+        \item[-] Contraseña encriptada.
+        \item[-] Fecha de creación de la cuenta al finalizar la creación.
+        \item[-] Fecha del último login del voluntario.
+        \item[-] Intentos fallidos al intentar iniciar sesión de forma incorrecta.
+        \item[-] Fecha hasta donde se bloquea la cuenta tras 5 intentos fallidos al iniciar sesión. 
+    \end{description}
+    \par
+    La creación de una nueva cuenta queda registrada en el log de auditoría con el nombre de la cuenta actualmente autenticada en el sistema. 
+    \par
+    El admin proporciona al voluntario una contraseña de un solo uso para entrar al sistema. Una vez inicie el voluntario, se le pedirá que introduzca 
+    su nueva contraseña ed acceso para sustituir la temporal proporcionada. En este momento, el estado de la cuenta se actualiza de \texttt{PENDIENTE\_ACTIVACION} a 
+    \texttt{ACTIVA} (RF1.8).
     
     \item \textbf{RF1.2 Visualización de los datos de la cuenta} \\
     El sistema debe permitir a cualquier voluntario autenticado consultar los
@@ -70,9 +84,9 @@ la descripción principal.
         configurable de inactividad.
     \end{description}
 
-    \item \textbf{RF1.8 Recuperación de contraseña} \\
-    El sistema debe permitir a un voluntario solicitar el restablecimiento de
-    su contraseña en caso de olvido.
+    \item \textbf{RF1.8 Activación de la cuentas} \\
+    El sistema debe permitir a un voluntario activar su cuenta actualizando la contraseña temporal de acceso por una nueva que introduzca. 
+    El estado de cuenta debe ser \texttt{ACTIVA} tras esta acción.
 \end{itemize}
 
 
@@ -235,9 +249,9 @@ la descripción principal.
 
 \subsection{RF4 Servicios y Agendamiento}
 \begin{itemize}
-    \item \textbf{RF4.1 Catálogo extensible de servicios} \\
+    \item \textbf{RF4.1 Gestión del Catálogo de servicios} \\
     El sistema debe mantener un catálogo de tipos de servicio que el Admin
-    puede ampliar y modificar sin necesidad de cambios en el código.
+    puede consultar y eliminar o desactivar algún según sea el caso.
     \begin{description}
         \item[-] La eliminación de un tipo de servicio queda condicionada a la ausencia
         de servicios prestados de ese tipo en el histórico (en su lugar, se
@@ -629,7 +643,7 @@ la descripción principal.
     \begin{description}
         \item[-] Para Admin y directiva: total de amigos activos, servicios prestados
         en el último mes, gasto del mes en curso, alertas pendientes de
-        reposición de stock, convenios próximos a vencer.
+        reposición de stock.
         \item[-] Para Voluntario operativo: agenda del día, stock con alertas, tareas asignadas.
         \item[-] Los indicadores se calculan con datos en tiempo real, no con capturas periódicas.
     \end{description}
