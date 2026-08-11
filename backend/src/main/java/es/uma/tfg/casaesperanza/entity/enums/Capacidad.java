@@ -7,20 +7,21 @@ package es.uma.tfg.casaesperanza.entity.enums;
  * del DGR_v02.
  */
 public enum Capacidad {
-    GestionarCuentasRoles,
-    HabilitarAccesoTemp,
-    CrearFichaAmigo1,
-    EscalarFichaAmigoNivel2,
-    EscalarFichaAmigoNivel3,
-    AccederDatosSensiblesAmigo,
-    CrearNotaPrivada,
-    AgendarServicio,
-    RegistrarEntradaRopa,
-    RegistrarEntradaSalidaAlimentaria,
-    OperarLavandaria,
-    ConsultarStockRopa,
-    CrearAsientosContables,
-    ExportarAsientosContables,
-    GenerarInformes,
-    AccederLogAuditoria
+    GESTIONAR_CUENTAS,
+    CONCEDER_HABILITACION,
+    ESCALAR_NIVEL_3,
+    AGENDAR_SERVICIOS,
+    ENTREGAR_ROPA,
+    OPERAR_LAVANDERIA,
+    GESTIONAR_ARMARIO,
+    CONSULTAR_STOCK,
+    REGISTRAR_ENTREGA_ALIMENTARIA,
+    REGISTRAR_SALIDA_ALIMENTARIA,
+    REGISTRAR_ASIENTOS,
+    REGISTRAR_GASTO_AMIGO,
+    IMPORTAR_EXTRACTOS,
+    IMPORTAR_DATOS,
+    GESTIONAR_CATALOGOS,
+    EXPORTAR_INFORMES,
+    CONSULTAR_AUDITORIA
 }
