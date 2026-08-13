@@ -18,7 +18,7 @@ Un **Dockerfile** es un archivo que contiene una serie de instrucciones que le i
 
 Una **imagen** es el *template* que genera el Dockerfile. Contiene todas las instrucciones y archivos necesarios (código, bibliotecas, dependencias, variables de entorno) para ejecutar una aplicación.
 
-Finalmente, cuando se ejecuta la imagen y se crea el **contenedor** que ejecuta el *template* de la aplicación. Efectivamente creando una versión autocontenida y ligera de, en este caso, el backend del proyecto.
+Finalmente, se ejecuta la imagen y se crea el **contenedor** que ejecuta el *template* de la aplicación. Efectivamente creando una versión autocontenida y ligera de, en este caso, el backend del proyecto.
 
 Un **docker-compose** es un archivo donde se describe cómo se relacionan los contenedores. Es la forma declarativa y reutilizable de la forma habitual de ejecutar contenedores con `docker run`.
 

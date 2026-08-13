@@ -36,9 +36,19 @@ Como última nota mencionar que el *scope* de una anotación se aplica al elemen
     - `@Id`: especifica un atributo cuyo columna en la base de datos es clave primaria.
     - `@GeneratedValue`: genera automáticamente el valor de la clave primaria.
     - `@Column`: especifica la columna de la base de datos a la que se mapea un atributo.
-        - name: nombre que tendrá el atributo en la base de datos. Lo omitimos para que tenga el mismo que el de la entidad.
+        - name: nombre que tendrá el atributo en la base de datos. Lo omitimos para que tenga el mismo que el atributo.
         - unique: determina si el atributo puede tener valores repetidos.
-        - nullable: define si el atributo puede tener valor indefinido (`null`). Caso paradigmático: definimos un atributo como Integer para que sea posible asignar el valor null en Java. Si definimos nullable = false, indica que el tipo *permite* null, pero *se prohíbe* que se guarde así en la base de datos.
+        - nullable: define si el atributo puede tener valor indefinido (`null`). Caso paradigmático: definimos un atributo como Integer para que sea posible asignar el valor null en Java. Si definimos nullable = false, indica que el tipo *permite* null, pero *se prohíbe* que se guarde así en la base de datos.+
+    - `@Enumerated`: indica al framework como almacenar un clase Java enum en una columna de la base de datos. Con esta anotación no necesitamos mapear cada valor por separado. JPA ofrece dos formas de hacer el mapeo:
+        - EnumType.STRING almacena el propio valor.
+        - EnumType.ORDINAL almacena la posición del valor; un número entero.
+
+        A pesar que STRING ocupa más espacio en la base de datos, es más legible y menos propenso a errores, en especial con enums con tantas entradas como las que usaré.
+    - `@ElementCollection`: define una colección de instancias de basic types o embeddable class. Esta anotación nos proporciona una forma sencilla de implementar una relación one-to-many con un basic type; en este caso, String. Le dice a JPA que la entidad padre tendrá una colección de objetos que no son entidades en sí mismos, sino valores que pertenece a ella, y la almacene en la base de datos sin crear una entidad adicional.
+        - fetch: por defecto es Lazy. Especificamos FetchType.EAGER para tener los datos de la colección al momento que se consulte al entidad padre.
+    - `@CollectionTable`: especifica la tabla que será usada para mapear una colección. En concreto, @ElementCollection si crea una tabla adicional en la base de datos pero no es una entidad desde el punto de vista de JPA.
+        - name: nombre de la tabla que se creará.
+        - joinColumns: indicar bajo que atributo se relacionan la tabla de la colección y la entidad padre. Si no se especifica, JPA asume que la colección se relaciona con la entidad propietaria mediante su clave primaria (@Id).
 - **Joins**:
     - 
 
@@ -51,6 +61,8 @@ Como última nota mencionar que el *scope* de una anotación se aplica al elemen
 - [Introduction to the Spring IoC Container and Beans](https://docs.spring.io/spring-framework/reference/core/beans/introduction.html)
 - [Hibernate Community Documentation - Chapter 2. Mapping Entities](https://docs.hibernate.org/stable/annotations/reference/en/html/entity.html#entity-mapping)
 - [High-Performance Hibernate Tutorial](https://vladmihalcea.com/tutorials/hibernate/)
+- [Mapping Enum Values in JPA - @Enumerated, @Transient, and Lifecycles Callbacks](https://medium.com/@kulshresthjangid/mapping-enum-values-in-jpa-explore-into-enumerated-transient-and-lifecycles-callbacks-3f66d2d48596)
+- [Difference between @OneToMany and @ElementCollection?](https://stackoverflow.com/questions/8969059/difference-between-onetomany-and-elementcollection)
 
 ## Footnotes
 [^1]: Plain Old Java Object. Clase Java simple que no dependen de un framework especial que representa datos. Del mismo modo, un objeto POJO es una instancia de una clase que no extiende ni implementa nada en especial.
