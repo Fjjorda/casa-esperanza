@@ -27,13 +27,13 @@ public class VoluntarioEntity {
     private String nombre;
 
     @Column(nullable = false, length = 100)
-    private String apellidos;
+    private String apellido;
 
-    @Column(unique = true, length = 9)
+    @Column(nullable = false, unique = true, length = 9)
     private String dni;
 
     @Column(length = 20)
-    private int telefono;
+    private String telefono;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -43,9 +43,9 @@ public class VoluntarioEntity {
     @Column(nullable = false, name = "nivel_seguridad")
     private NivelSeguridad nivelSeguridad;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "area_profesional")
-    private AreaProfesional areaProfesional;
+    @ManyToOne
+    @JoinColumn(name = "areaProfesional_id")
+    private AreaProfesionalEntity areaProfesional;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, name = "estado_cuenta")
@@ -58,12 +58,13 @@ public class VoluntarioEntity {
     )
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, name = "capacidad")
-    private Set<Capacidad> capacidades = new HashSet<>();
+    private Set<Capacidad> capacidadesEfectivasSet = new HashSet<>();
+    // capacidadesEfectivas = capacidadesInherentes del Rol + capacidadesAdicionales
 
     @Column(nullable = false, name = "fecha_creacion")
     private LocalDateTime fechaCreacion;
 
-    @Column(nullable = false, name = "fecha_ultimo_login")
+    @Column(name = "fecha_ultimo_login")
     private LocalDateTime fechaUltimoLogin;
 
     @Column(nullable = false, name = "intentos_fallidos")
