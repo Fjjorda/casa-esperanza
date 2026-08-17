@@ -8,10 +8,10 @@ Los tipos en Java, ya sean primitivos o wrappers, su principal diferencia en com
 
 Acabamos de dar un ejemplo de un basic type. Estos, son un tipo cuyo valor puede persistirse directamente como una única columna de la base de datos. 
 
-La confusión vino cuando me tope con un enum de literales String. Efectivamente, String una clase de Java pero sabe persistirla directamente. 
+La confusión vino cuando me tope con un enum de literales String. Efectivamente, String una clase de Java pero Hibernate sabe persistirla directamente. 
 
 ## Conclusión
-Basic Type no significa "tipo primitivo". Un basic type tiene un valor lo suficientemente simple como para representarlo directamente en una columna
+Basic Type no significa "tipo primitivo". Un basic type tiene un valor lo suficientemente simple como para representarlo directamente en una columna en la base de datos.
 
 ## Fuentes consultadas
 - JPA @Basic Annotation: https://www.baeldung.com/jpa-basic-annotation
