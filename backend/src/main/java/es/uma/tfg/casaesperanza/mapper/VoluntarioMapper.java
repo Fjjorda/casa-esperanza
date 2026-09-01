@@ -4,6 +4,7 @@ import es.uma.tfg.casaesperanza.dto.CreateVoluntarioRequest;
 import es.uma.tfg.casaesperanza.entity.VoluntarioEntity;
 import es.uma.tfg.casaesperanza.entity.enums.Capacidad;
 import es.uma.tfg.casaesperanza.entity.enums.EstadoCuenta;
+import es.uma.tfg.casaesperanza.repository.AreaProfesionalRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -15,9 +16,11 @@ import java.util.Set;
 public class VoluntarioMapper {
 
     private final PasswordEncoder passwordEncoder;
+    private final AreaProfesionalRepository areaProfesionalRepository;
 
-    public VoluntarioMapper(PasswordEncoder passwordEncoder) {
+    public VoluntarioMapper(PasswordEncoder passwordEncoder, AreaProfesionalRepository areaProfesionalRepository) {
         this.passwordEncoder = passwordEncoder;
+        this.areaProfesionalRepository = areaProfesionalRepository;
     }
 
     /**
@@ -36,7 +39,7 @@ public class VoluntarioMapper {
         newEntity.setEmail(requestDTO.getEmail());
         newEntity.setRol(requestDTO.getRol());
         newEntity.setNivelSeguridad(requestDTO.getNivelSeguridad());
-        newEntity.setAreaProfesional(requestDTO.getAreaProfesional());
+        newEntity.setAreaProfesional(areaProfesionalRepository.findById(requestDTO.getAreaProfesionalId()).orElse(null));
         // Definimos las capacidades efectivas del voluntario
         // Primero, extraemos las capacidades inherentes del Rol
         Set<Capacidad> capacidadesEfectivas = EnumSet.copyOf(requestDTO.getRol().getCapacidadesInherentes());

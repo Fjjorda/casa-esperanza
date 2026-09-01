@@ -40,7 +40,8 @@ public class CreateVoluntarioRequest {
     @NotNull(message = "Debe seleccionar un nivel de seguridad")
     private NivelSeguridad nivelSeguridad;
     @NotNull(message = "Debe seleccionar un área profesional")
-    private AreaProfesionalEntity areaProfesional;
+    private int areaProfesionalId;
+    private String nuevaAreaProfesional; // Null cuando se selecciona un área profesional existente. No null cuando se crea una nueva área profesional
 
     private Set<Capacidad> capacidadesAdicionales = new HashSet<>(); // Recupera cualquier capacidad no inherente al rol
     // Al momento de persistir, se concatenan estas capacidades con las inherentes al rol
