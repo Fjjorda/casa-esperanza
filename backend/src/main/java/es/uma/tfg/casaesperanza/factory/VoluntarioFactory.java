@@ -1,10 +1,10 @@
-package es.uma.tfg.casaesperanza.mapper;
+package es.uma.tfg.casaesperanza.factory;
 
 import es.uma.tfg.casaesperanza.dto.CreateVoluntarioRequest;
+import es.uma.tfg.casaesperanza.entity.AreaProfesionalEntity;
 import es.uma.tfg.casaesperanza.entity.VoluntarioEntity;
 import es.uma.tfg.casaesperanza.entity.enums.Capacidad;
 import es.uma.tfg.casaesperanza.entity.enums.EstadoCuenta;
-import es.uma.tfg.casaesperanza.repository.AreaProfesionalRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -13,21 +13,22 @@ import java.util.EnumSet;
 import java.util.Set;
 
 @Component
-public class VoluntarioMapper {
+public class VoluntarioFactory {
 
     private final PasswordEncoder passwordEncoder;
-    private final AreaProfesionalRepository areaProfesionalRepository;
 
-    public VoluntarioMapper(PasswordEncoder passwordEncoder, AreaProfesionalRepository areaProfesionalRepository) {
+    public VoluntarioFactory(PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;
-        this.areaProfesionalRepository = areaProfesionalRepository;
     }
 
     /**
-     * Recibe un CreateVoluntarioRequest DTO y lo transforma en un VoluntarioEntity
-     * para poder persistirlo en la base de datos.
+     * Abstrae toda la lógica de creación de un VoluntarioEntity a partir de los parámetros
+     * de entrada.
+     * @param requestDTO DTO con los datos de entrada recuperados del formulario de creación.
+     * @param areaProfesional Área profesional asociada al voluntario.
+     * @return Entidad de tipo VoluntarioEntity lista para ser persistida.
      */
-    public VoluntarioEntity toEntity(CreateVoluntarioRequest requestDTO) {
+    public VoluntarioEntity toEntity(CreateVoluntarioRequest requestDTO, AreaProfesionalEntity areaProfesional) {
         // Creamos uns nueva instancia de VoluntarioEntity para rellenar
         VoluntarioEntity newEntity = new VoluntarioEntity();
 
@@ -39,7 +40,10 @@ public class VoluntarioMapper {
         newEntity.setEmail(requestDTO.getEmail());
         newEntity.setRol(requestDTO.getRol());
         newEntity.setNivelSeguridad(requestDTO.getNivelSeguridad());
-        newEntity.setAreaProfesional(areaProfesionalRepository.findById(requestDTO.getAreaProfesionalId()).orElse(null));
+
+        // Asignación de entidades complejas (resueltas previamente por el Service)
+        newEntity.setAreaProfesional(areaProfesional);
+
         // Definimos las capacidades efectivas del voluntario
         // Primero, extraemos las capacidades inherentes del Rol
         Set<Capacidad> capacidadesEfectivas = EnumSet.copyOf(requestDTO.getRol().getCapacidadesInherentes());
@@ -63,11 +67,9 @@ public class VoluntarioMapper {
         // Campos que se registran siempre igual en la creación de una cuenta:
         newEntity.setEstadoCuenta(EstadoCuenta.PENDIENTE_ACTIVACION);
         // Contraseña (temporal) encriptada
-        newEntity.setPasswordHash(
-                passwordEncoder.encode(requestDTO.getPasswordTemporal())
-        );
+        newEntity.setPasswordHash(passwordEncoder.encode(requestDTO.getPasswordTemporal()));
         newEntity.setFechaCreacion(LocalDateTime.now());
-        newEntity.setFechaUltimoLogin(null); // Se actualiza después del primer login
+        newEntity.setFechaUltimoLogin(null); // Se actualizará después del primer login
         newEntity.setIntentosFallidos(0);
         newEntity.setBloqueadaHasta(null);
 
