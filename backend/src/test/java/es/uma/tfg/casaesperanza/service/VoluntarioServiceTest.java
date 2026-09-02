@@ -3,6 +3,7 @@ package es.uma.tfg.casaesperanza.service;
 import es.uma.tfg.casaesperanza.dto.CreateVoluntarioRequest;
 import es.uma.tfg.casaesperanza.entity.AreaProfesionalEntity;
 import es.uma.tfg.casaesperanza.entity.VoluntarioEntity;
+import es.uma.tfg.casaesperanza.entity.enums.Capacidad;
 import es.uma.tfg.casaesperanza.entity.enums.NivelSeguridad;
 import es.uma.tfg.casaesperanza.entity.enums.Rol;
 import es.uma.tfg.casaesperanza.factory.VoluntarioFactory;
@@ -15,11 +16,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.EnumSet;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -36,6 +39,8 @@ public class VoluntarioServiceTest {
     private AreaProfesionalRepository mockAreaProfesionalRepository;
     @Mock
     private VoluntarioFactory mockVoluntarioFactory;
+    @Mock
+    private PasswordEncoder mockPasswordEncoder;
 
     @BeforeEach
     void init() {
@@ -43,7 +48,8 @@ public class VoluntarioServiceTest {
         voluntarioService = new VoluntarioService(
                 mockVoluntarioRepository,
                 mockVoluntarioFactory,
-                mockAreaProfesionalRepository
+                mockAreaProfesionalRepository,
+                mockPasswordEncoder
         );
     }
 
@@ -55,7 +61,7 @@ public class VoluntarioServiceTest {
         @DisplayName("Crear cuenta de voluntario")
         class CrearCuentaVoluntario {
 
-            @DisplayName("Escenario principal: Crear cuenta de voluntario con datos válidos")
+            @DisplayName("Escenario principal: Crear cuenta de voluntario con datos válidos.")
             @Test
             void crearCuentaVoluntario_DatosValidos() {
                 /// Arrange
@@ -68,7 +74,8 @@ public class VoluntarioServiceTest {
                 requestDTO.setRol(Rol.ADMIN);
                 requestDTO.setNivelSeguridad(NivelSeguridad.PRIVILEGIADO);
                 requestDTO.setCapacidadesAdicionales(null); // Nos quedamos con las capacidades inherentes al rol
-                requestDTO.setPasswordTemporal("nuevaPassword");
+                String dummyPassword = "nuevaPasswordTemporal";
+                requestDTO.setPasswordTemporal(dummyPassword);
                 requestDTO.setAreaProfesionalId(10); // Alguna área profesional existente
 
                 // Mock de AreaProfesional
@@ -77,9 +84,14 @@ public class VoluntarioServiceTest {
                 areaProfesionalDummy.setNombre("Área Profesional Existente");
                 when(mockAreaProfesionalRepository.findById(10)).thenReturn(Optional.of(areaProfesionalDummy));
 
+                // Mock de PasswordEncoder
+                when(mockPasswordEncoder.encode(dummyPassword)).thenReturn("hashedPassword");
+
                 // Mock de VoluntarioFactory
                 VoluntarioEntity nuevoVoluntario = new VoluntarioEntity();
-                when(mockVoluntarioFactory.toEntity(requestDTO, areaProfesionalDummy)).thenReturn(nuevoVoluntario);
+                when(mockVoluntarioFactory.buildVoluntarioEntity(
+                        requestDTO, areaProfesionalDummy, Rol.ADMIN.getCapacidadesInherentes(), "hashedPassword"))
+                        .thenReturn(nuevoVoluntario);
 
                 /// Act
                 voluntarioService.crearCuentaVoluntario(requestDTO);
@@ -89,7 +101,66 @@ public class VoluntarioServiceTest {
                 verify(mockVoluntarioRepository).save(nuevoVoluntario);
             }
 
-            @DisplayName("4.b Se intenta crear una cuenta con un campo repetido")
+            @DisplayName("Crear cuenta de voluntario con capacidades adicionales a su rol.")
+            @Test
+            void crearCuentaVoluntario_CapacidadesAdicionales() {
+                /// Arrange
+                CreateVoluntarioRequest requestDTO = new CreateVoluntarioRequest();
+                Set<Capacidad> dummyCapacidades = Set.of(Capacidad.CONSULTAR_NOTAS_AMIGO, Capacidad.CREAR_ASIENTOS);
+                String dummyPassword = "nuevaPasswordTemporal";
+
+                requestDTO.setNombre("Dummy1");
+                requestDTO.setRol(Rol.OPERATIVO);
+                requestDTO.setCapacidadesAdicionales(dummyCapacidades);
+                requestDTO.setPasswordTemporal(dummyPassword);
+                requestDTO.setAreaProfesionalId(10); // Alguna área profesional existente
+
+                AreaProfesionalEntity areaProfesionalDummy = new AreaProfesionalEntity();
+                areaProfesionalDummy.setAreaProfesional_id(10);
+                areaProfesionalDummy.setNombre("Área Profesional Existente");
+
+                when(mockAreaProfesionalRepository.findById(10)).thenReturn(Optional.of(areaProfesionalDummy));
+                when(mockPasswordEncoder.encode(dummyPassword)).thenReturn("hashedPassword");
+
+                // Preparamos un Set de capacidades como lo esperaría el Service
+                Set<Capacidad> capacidadesEfectivas = EnumSet.copyOf(Rol.OPERATIVO.getCapacidadesInherentes());
+                capacidadesEfectivas.addAll(dummyCapacidades);
+
+                VoluntarioEntity nuevoVoluntario = new VoluntarioEntity();
+                when(mockVoluntarioFactory.buildVoluntarioEntity(
+                        requestDTO, areaProfesionalDummy, capacidadesEfectivas, "hashedPassword"))
+                        .thenReturn(nuevoVoluntario);
+
+                /// Act
+                voluntarioService.crearCuentaVoluntario(requestDTO);
+
+                /// Assert
+                verify(mockVoluntarioRepository).save(nuevoVoluntario);
+            }
+
+            @DisplayName("Crear cuenta de voluntario con capacidades no permitidas para su rol.")
+            @Test
+            void crearCuentaVoluntario_CapacidadesNoPermitidas_Exception() {
+                /// Arrange
+                CreateVoluntarioRequest requestDTO = new CreateVoluntarioRequest();
+                Set<Capacidad> dummyCapacidadesNoPermitidas = Rol.OPERATIVO.getCapacidadesIncompatibles();
+
+                requestDTO.setNombre("Dummy4");
+                requestDTO.setRol(Rol.OPERATIVO);
+                requestDTO.setCapacidadesAdicionales(dummyCapacidadesNoPermitidas);
+
+                // Preparamos un Set de capacidades como lo esperaría el Service
+                Set<Capacidad> capacidadesEfectivas = EnumSet.copyOf(Rol.OPERATIVO.getCapacidadesInherentes());
+                capacidadesEfectivas.addAll(dummyCapacidadesNoPermitidas);
+
+
+                /// Act & Assert
+                // Al intentar crear la cuenta con capacidades no permitidas, se lanzará una excepción
+                assertThatExceptionOfType(IllegalArgumentException.class)
+                        .isThrownBy(() -> voluntarioService.crearCuentaVoluntario(requestDTO));
+            }
+
+            @DisplayName("4.b Se intenta crear una cuenta con un campo repetido.")
             @Test
             void crearCuentaVoluntario_CampoDniExistente_Exception() {
                 /// Arrange
@@ -116,8 +187,11 @@ public class VoluntarioServiceTest {
                 CreateVoluntarioRequest requestDTO = new CreateVoluntarioRequest();
                 requestDTO.setNombre("Dummy3");
                 requestDTO.setDni("00000000B");
+                requestDTO.setRol(Rol.ADMIN);
                 requestDTO.setAreaProfesionalId(1); // ID del área profesional "Otro"
+                String dummyPassword = "nuevaPasswordTemporal";
                 requestDTO.setNuevaAreaProfesional("Área Profesional Nueva");
+                requestDTO.setPasswordTemporal(dummyPassword);
 
                 AreaProfesionalEntity nuevaProfesion = new AreaProfesionalEntity();
                 // Simulamos la entidad tal y como la devolvería la base de datos al persistirla:
@@ -129,9 +203,12 @@ public class VoluntarioServiceTest {
                 when(mockAreaProfesionalRepository.save(any(AreaProfesionalEntity.class)))
                         .thenReturn(nuevaProfesion);
 
+                when(mockPasswordEncoder.encode(dummyPassword)).thenReturn("hashedPassword");
+
                 VoluntarioEntity nuevoVoluntario = new VoluntarioEntity();
-                when(mockVoluntarioFactory.toEntity(requestDTO, nuevaProfesion)).
-                        thenReturn(nuevoVoluntario);
+                when(mockVoluntarioFactory.buildVoluntarioEntity(
+                        requestDTO, nuevaProfesion, Rol.ADMIN.getCapacidadesInherentes(), "hashedPassword"))
+                        .thenReturn(nuevoVoluntario);
 
                 /// Act
                 voluntarioService.crearCuentaVoluntario(requestDTO);
@@ -142,6 +219,61 @@ public class VoluntarioServiceTest {
                 verify(mockAreaProfesionalRepository).save(any(AreaProfesionalEntity.class));
                 verify(mockVoluntarioRepository).save(nuevoVoluntario);
             }
+
+            @DisplayName("Se selecciona 'Otro' en el área profesional pero el nombre viene vacío.")
+            @Test
+            void crearCuentaVoluntario_AreaProfesionalOtro_NombreVacio_Exception() {
+                /// Arrange
+                CreateVoluntarioRequest requestDTO = new CreateVoluntarioRequest();
+                requestDTO.setNombre("Dummy4");
+                requestDTO.setDni("00000000C");
+                requestDTO.setAreaProfesionalId(1);     // ID del área profesional "Otro"
+                requestDTO.setNuevaAreaProfesional(""); // Nombre vacío
+
+                String exceptionMessage = "No se especificó un nombre para la nueva área profesional";
+
+                /// Act & Assert
+                assertThatExceptionOfType(IllegalArgumentException.class)
+                        .isThrownBy(() -> voluntarioService.crearCuentaVoluntario(requestDTO))
+                        .withMessage(exceptionMessage);
+            }
+
+            @DisplayName("Se selecciona 'Otro' en el área profesional pero el nombre viene nulo.")
+            @Test
+            void crearCuentaVoluntario_AreaProfesionalOtro_NombreNull_Exception() {
+                /// Arrange
+                CreateVoluntarioRequest requestDTO = new CreateVoluntarioRequest();
+                requestDTO.setNombre("Dummy4");
+                requestDTO.setDni("00000000C");
+                requestDTO.setAreaProfesionalId(1);
+                requestDTO.setNuevaAreaProfesional(null);
+
+                String exceptionMessage = "No se especificó un nombre para la nueva área profesional";
+
+                /// Act & Assert
+                assertThatExceptionOfType(IllegalArgumentException.class)
+                        .isThrownBy(() -> voluntarioService.crearCuentaVoluntario(requestDTO))
+                        .withMessage(exceptionMessage);
+            }
+
+            @DisplayName("Se inenta asignar un área profesional inexistente.")
+            @Test
+            void crearCuentaVoluntario_AreaProfesionalInexistente_Exception() {
+                /// Arrange
+                CreateVoluntarioRequest requestDTO = new CreateVoluntarioRequest();
+                requestDTO.setNombre("Dummy5");
+                requestDTO.setDni("00000000D");
+                requestDTO.setAreaProfesionalId(999); // ID inexistente
+
+                String exceptionMessage = "Área profesional no válida";
+
+                /// Act & Assert
+                assertThatExceptionOfType(IllegalArgumentException.class)
+                        .isThrownBy(() -> voluntarioService.crearCuentaVoluntario(requestDTO))
+                        .withMessage(exceptionMessage);
+            }
+
+
         } // end CrearCuentaVoluntario
     } // end class RF1_1
 }
