@@ -1,17 +1,20 @@
 package es.uma.tfg.casaesperanza.service;
 
-import es.uma.tfg.casaesperanza.dto.CreateVoluntarioRequest;
+import es.uma.tfg.casaesperanza.dto.request.CreateVoluntarioRequest;
+import es.uma.tfg.casaesperanza.dto.response.VoluntarioListResponse;
 import es.uma.tfg.casaesperanza.entity.AreaProfesionalEntity;
 import es.uma.tfg.casaesperanza.entity.VoluntarioEntity;
 import es.uma.tfg.casaesperanza.entity.enums.Capacidad;
 import es.uma.tfg.casaesperanza.entity.enums.Rol;
 import es.uma.tfg.casaesperanza.factory.VoluntarioFactory;
+import es.uma.tfg.casaesperanza.mapper.VoluntarioMapper;
 import es.uma.tfg.casaesperanza.repository.AreaProfesionalRepository;
 import es.uma.tfg.casaesperanza.repository.VoluntarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -94,5 +97,9 @@ public class VoluntarioService {
         }
 
         return capacidadesEfectivas;
+    }
+
+    public List<VoluntarioListResponse> listarVoluntarios() {
+        return voluntarioRepository.findAll().stream().map(VoluntarioMapper::toListResponseDTO).toList();
     }
 }
