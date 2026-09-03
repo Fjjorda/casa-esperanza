@@ -1,6 +1,6 @@
 package es.uma.tfg.casaesperanza.service;
 
-import es.uma.tfg.casaesperanza.dto.CreateVoluntarioRequest;
+import es.uma.tfg.casaesperanza.dto.request.CreateVoluntarioRequest;
 import es.uma.tfg.casaesperanza.entity.AreaProfesionalEntity;
 import es.uma.tfg.casaesperanza.entity.VoluntarioEntity;
 import es.uma.tfg.casaesperanza.entity.enums.Capacidad;

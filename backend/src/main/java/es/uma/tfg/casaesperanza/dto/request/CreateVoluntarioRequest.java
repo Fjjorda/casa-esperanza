@@ -1,6 +1,5 @@
-package es.uma.tfg.casaesperanza.dto;
+package es.uma.tfg.casaesperanza.dto.request;
 
-import es.uma.tfg.casaesperanza.entity.AreaProfesionalEntity;
 import es.uma.tfg.casaesperanza.entity.enums.Capacidad;
 import es.uma.tfg.casaesperanza.entity.enums.NivelSeguridad;
 import es.uma.tfg.casaesperanza.entity.enums.Rol;
@@ -13,7 +12,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * RequestDTO que almacenará los datos necesarios para crear un nuevo voluntario.
+ * DTO para almacenar y trasportar los datos recuperados del formulario de creación de un
+ * voluntario.
  * <p>
  * Bean Validation se encargará de validar los datos recibidos en el request. Ya fue
  * activado en las dependencias de Spring Boot (starter-validation en pom.xml).

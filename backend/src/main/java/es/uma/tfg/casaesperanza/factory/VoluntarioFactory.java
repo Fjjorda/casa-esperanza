@@ -1,15 +1,13 @@
 package es.uma.tfg.casaesperanza.factory;
 
-import es.uma.tfg.casaesperanza.dto.CreateVoluntarioRequest;
+import es.uma.tfg.casaesperanza.dto.request.CreateVoluntarioRequest;
 import es.uma.tfg.casaesperanza.entity.AreaProfesionalEntity;
 import es.uma.tfg.casaesperanza.entity.VoluntarioEntity;
 import es.uma.tfg.casaesperanza.entity.enums.Capacidad;
 import es.uma.tfg.casaesperanza.entity.enums.EstadoCuenta;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.util.EnumSet;
 import java.util.Set;
 
 @Component
