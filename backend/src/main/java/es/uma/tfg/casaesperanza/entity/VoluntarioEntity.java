@@ -14,13 +14,13 @@ import java.util.Set;
 public class VoluntarioEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(nullable = false)
-    private Integer voluntario_id;
+    @Column(nullable = false, name = "voluntario_id")
+    private Integer voluntarioId;
 
     @Column(nullable  = false, unique = true, length = 255)
     private String email;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "password_hash")
     private String passwordHash;
 
     @Column(nullable = false, length = 100)
@@ -44,7 +44,7 @@ public class VoluntarioEntity {
     private NivelSeguridad nivelSeguridad;
 
     @ManyToOne
-    @JoinColumn(name = "areaProfesional_id")
+    @JoinColumn(name = "area_profesional_id")
     private AreaProfesionalEntity areaProfesional;
 
     @Enumerated(EnumType.STRING)

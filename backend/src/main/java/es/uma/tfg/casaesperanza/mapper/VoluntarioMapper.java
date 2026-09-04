@@ -7,7 +7,7 @@ public class VoluntarioMapper {
 
     public static VoluntarioListResponse toListResponseDTO(VoluntarioEntity entity) {
         return new VoluntarioListResponse(
-                entity.getVoluntario_id(),
+                entity.getVoluntarioId(),
                 entity.getNombre(),
                 entity.getApellido(),
                 entity.getEmail(),

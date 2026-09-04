@@ -30,7 +30,7 @@ public class VoluntarioFactory {
 
         // Extraemos los datos del DTO y los escribimos en newEntity
         newEntity.setNombre(requestDTO.getNombre());
-        newEntity.setApellido(requestDTO.getApellidos());
+        newEntity.setApellido(requestDTO.getApellido());
         newEntity.setTelefono(requestDTO.getTelefono());
         newEntity.setDni(requestDTO.getDni());
         newEntity.setEmail(requestDTO.getEmail());

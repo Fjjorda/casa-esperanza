@@ -22,8 +22,8 @@ import java.util.Set;
 public class CreateVoluntarioRequest {
     @NotBlank(message = "El nombre no puede estar vacío")
     private String nombre;
-    @NotBlank(message = "Los apellidos no pueden estar vacíos")
-    private String apellidos;
+    @NotBlank(message = "El apellido no puede estar vacío")
+    private String apellido;
     @NotBlank(message = "El teléfono no puede estar vacío")
     private String telefono;
     @NotBlank(message = "El DNI no puede estar vacío")

@@ -11,8 +11,8 @@ import java.util.List;
 public class AreaProfesionalEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(nullable = false)
-    private Integer areaProfesional_id;
+    @Column(nullable = false, name = "area_profesional_id")
+    private Integer areaProfesionalId;
 
     @Column(nullable = false, unique = true)
     private String nombre;
