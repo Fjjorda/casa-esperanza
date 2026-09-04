@@ -1,0 +1,41 @@
+@host = http://localhost:8080
+
+### Listar voluntarios
+GET {{host}}/casa-esperanza/voluntarios
+Accept: application/json
+
+### Crear voluntario - datos válidos
+POST {{host}}/casa-esperanza/voluntarios
+Content-Type: application/json
+
+{
+  "nombre": "Francisco",
+  "apellido": "Jordá",
+  "telefono": "111222333",
+  "dni": "12345678A",
+  "email": "francisco.test@example.com",
+  "passwordTemporal": "Temp1234!",
+  "rol": "ADMIN",
+  "nivelSeguridad": "BASICO",
+  "capacidadesAdicionales": [],
+  "areaProfesionalId": 2,
+  "nuevaAreaProfesional": null
+}
+
+### Crear el mismo voluntario - DNI duplicado
+POST {{host}}/casa-esperanza/voluntarios
+Content-Type: application/json
+
+{
+  "nombre": "Francisco",
+  "apellido": "Jordá",
+  "telefono": "111222333",
+  "dni": "12345678A",
+  "email": "francisco.test@example.com",
+  "passwordTemporal": "Temp1234!",
+  "rol": "ADMIN",
+  "nivelSeguridad": "BASICO",
+  "capacidadesAdicionales": [],
+  "areaProfesionalId": 2,
+  "nuevaAreaProfesional": null
+}
