@@ -67,7 +67,7 @@ public class VoluntarioServiceTest {
                 /// Arrange
                 CreateVoluntarioRequest requestDTO = new CreateVoluntarioRequest();
                 requestDTO.setNombre("Francisco");
-                requestDTO.setApellidos("Jordá Garay");
+                requestDTO.setApellido("Jordá Garay");
                 requestDTO.setTelefono("123456789");
                 requestDTO.setDni("12345678A");
                 requestDTO.setEmail("micorreo@gmail.com");
@@ -80,7 +80,7 @@ public class VoluntarioServiceTest {
 
                 // Mock de AreaProfesional
                 AreaProfesionalEntity areaProfesionalDummy = new AreaProfesionalEntity();
-                areaProfesionalDummy.setAreaProfesional_id(10);
+                areaProfesionalDummy.setAreaProfesionalId(10);
                 areaProfesionalDummy.setNombre("Área Profesional Existente");
                 when(mockAreaProfesionalRepository.findById(10)).thenReturn(Optional.of(areaProfesionalDummy));
 
@@ -116,7 +116,7 @@ public class VoluntarioServiceTest {
                 requestDTO.setAreaProfesionalId(10); // Alguna área profesional existente
 
                 AreaProfesionalEntity areaProfesionalDummy = new AreaProfesionalEntity();
-                areaProfesionalDummy.setAreaProfesional_id(10);
+                areaProfesionalDummy.setAreaProfesionalId(10);
                 areaProfesionalDummy.setNombre("Área Profesional Existente");
 
                 when(mockAreaProfesionalRepository.findById(10)).thenReturn(Optional.of(areaProfesionalDummy));
@@ -195,7 +195,7 @@ public class VoluntarioServiceTest {
 
                 AreaProfesionalEntity nuevaProfesion = new AreaProfesionalEntity();
                 // Simulamos la entidad tal y como la devolvería la base de datos al persistirla:
-                nuevaProfesion.setAreaProfesional_id(99);                       // con su ID,
+                nuevaProfesion.setAreaProfesionalId(99);                        // con su ID,
                 nuevaProfesion.setNombre(requestDTO.getNuevaAreaProfesional()); // y el nombre que se le dio en el formulario
 
                 // VoluntarioService debería persistir esta nueva área profesional antes de persistir el voluntario

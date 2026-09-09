@@ -1,0 +1,100 @@
+<div class="shell">
+
+  <!-- ===== Contenido principal ===== -->
+  <div class="main">
+    <a class="breadcrumb" href="#">&larr; Menú principal</a>
+    <h1 class="titulo">Gestión de usuarios</h1>
+
+    <div class="layout">
+
+      <!-- ===== Navigation drawer (sidebar) ===== -->
+      <aside class="sidebar">
+        <span class="sidebar-label">VISTAS</span>
+        <nav>
+          <a class="nav-item nav-item-activo">Voluntarios</a>
+          <a class="nav-item">Roles y permisos</a>
+          <a class="nav-item">Habilitaciones temporales</a>
+          <a class="nav-item">Log de auditoría</a>
+        </nav>
+      </aside>
+
+      <!-- ===== Panel de contenido ===== -->
+      <section class="panel">
+
+        <div class="toolbar">
+          <input class="buscador" type="text" placeholder="Buscar por nombre o correo..." />
+          <select class="filtro">
+            <option>Todos los roles</option>
+          </select>
+          <select class="filtro">
+            <option>Activos</option>
+          </select>
+          <button class="boton-primario" (click)="abrirFormulario()">+ Nueva cuenta</button>
+        </div>
+
+        <!-- @if es la nueva sintaxis de control de flujo de Angular (17+),
+             sustituye a *ngIf. Se lee igual que un if normal de programación. -->
+        @if (cargando) {
+          <p class="estado-carga">Cargando voluntarios...</p>
+        }
+
+        @if (error) {
+          <p class="estado-error">{{ error }}</p>
+        }
+
+        @if (!cargando && !error) {
+          <table class="tabla">
+            <thead>
+              <tr>
+                <th>Voluntario</th>
+                <th>Rol</th>
+                <th>Nivel</th>
+                <th>Estado</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- @for reemplaza a *ngFor. "track" le dice a Angular cómo
+                   identificar cada fila de forma única, para actualizar el
+                   DOM de forma eficiente cuando la lista cambia. -->
+              @for (v of voluntarios; track v.voluntarioId) {
+                <tr>
+                  <td>
+                    <div class="nombre">{{ v.nombre }} {{ v.apellido }}</div>
+                    <div class="email">{{ v.email }}</div>
+                  </td>
+                  <td>
+                    <span [class]="claseBadgeRol(v.rol)">{{ v.rol }}</span>
+                  </td>
+                  <td>{{ v.nivelSeguridad === 'PRIVILEGIADO' ? 'Privilegiado' : 'Básico' }}</td>
+                  <td>
+                    <span [class]="claseEstado(v.estadoCuenta)">
+                      <span class="dot"></span>
+                      {{ v.estadoCuenta === 'ACTIVA' ? 'Activo' : 'Pendiente' }}
+                    </span>
+                  </td>
+                  <td class="acciones">⋮</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5" class="vacio">Todavía no hay voluntarios registrados.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- El formulario se muestra condicionalmente como un componente hijo.
+     (voluntarioCreado) es "event binding": escucha un evento personalizado
+     que definiremos en ese componente y ejecuta onVoluntarioCreado() aquí. -->
+@if (mostrarFormulario) {
+  <app-nueva-cuenta-voluntario
+    (cancelado)="cerrarFormulario()"
+    (voluntarioCreado)="onVoluntarioCreado()">
+  </app-nueva-cuenta-voluntario>
+}

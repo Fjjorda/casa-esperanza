@@ -1,0 +1,187 @@
+/* Tokens de color, sacados directamente de tu mockup (imagen 1) */
+:host {
+  --bg: #121214;
+  --bg-panel: #1a1a1d;
+  --border: #2a2a2e;
+  --text: #f2f2f3;
+  --text-muted: #8a8a90;
+  --accent: #2f4f8f;
+
+  --badge-admin-bg: #3a2f6e;
+  --badge-admin-text: #c9b8ff;
+  --badge-operativo-bg: #1f4f3d;
+  --badge-operativo-text: #7fe0b8;
+  --badge-profesional-bg: #1f3d5c;
+  --badge-profesional-text: #7fc0ff;
+  --badge-puente-bg: #5c3d1f;
+  --badge-puente-text: #f0b878;
+  --badge-agente_temp-bg: #5c3d1f;
+  --badge-agente_temp-text: #f0b878;
+
+  --estado-activo: #5fd68a;
+  --estado-pendiente: #e0a94f;
+
+  display: block;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.shell { padding: 32px 40px; }
+
+.breadcrumb {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.titulo {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 8px 0 28px;
+}
+
+.layout {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+/* ---- Sidebar / Navigation drawer ---- */
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+}
+
+.sidebar-label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  margin-bottom: 12px;
+}
+
+.nav-item {
+  display: block;
+  padding: 10px 14px;
+  border-radius: 8px;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 15px;
+  margin-bottom: 4px;
+  cursor: pointer;
+}
+
+.nav-item-activo {
+  background: var(--accent);
+  font-weight: 600;
+}
+
+/* ---- Panel de contenido ---- */
+.panel {
+  flex: 1;
+  min-width: 0;
+}
+
+.toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.buscador {
+  flex: 1;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: var(--text);
+}
+
+.filtro {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: var(--text);
+}
+
+.boton-primario {
+  background: var(--text);
+  color: var(--bg);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.boton-primario:hover { opacity: 0.9; }
+
+/* ---- Tabla ---- */
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-panel);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.tabla th {
+  text-align: left;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tabla td {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  font-size: 15px;
+}
+
+.tabla tr:last-child td { border-bottom: none; }
+
+.nombre { font-weight: 600; }
+.email { color: var(--text-muted); font-size: 13px; }
+
+.acciones { color: var(--text-muted); cursor: pointer; text-align: right; }
+
+.vacio {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 32px 0;
+}
+
+/* ---- Badges de rol ---- */
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.badge-admin { background: var(--badge-admin-bg); color: var(--badge-admin-text); }
+.badge-operativo { background: var(--badge-operativo-bg); color: var(--badge-operativo-text); }
+.badge-profesional { background: var(--badge-profesional-bg); color: var(--badge-profesional-text); }
+.badge-puente { background: var(--badge-puente-bg); color: var(--badge-puente-text); }
+.badge-agente_temp { background: var(--badge-agente_temp-bg); color: var(--badge-agente_temp-text); }
+
+/* ---- Estado (Activo / Pendiente) ---- */
+.estado { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; }
+.estado-activo { color: var(--estado-activo); }
+.estado-pendiente { color: var(--estado-pendiente); }
+.dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: currentColor;
+}
+
+.estado-carga, .estado-error {
+  color: var(--text-muted);
+  padding: 24px 0;
+}
+.estado-error { color: #e07070; }

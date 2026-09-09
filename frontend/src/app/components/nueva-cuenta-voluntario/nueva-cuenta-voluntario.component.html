@@ -1,0 +1,85 @@
+<div class="overlay" (click)="cerrar()">
+  <!-- (click) del div de dentro con $event.stopPropagation() evita que un
+       clic dentro del modal se propague al overlay y lo cierre sin querer. -->
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Nueva cuenta de voluntario</h2>
+      <button class="cerrar" (click)="cerrar()">&times;</button>
+    </div>
+
+    <!-- ngSubmit se dispara al enviar el <form> (botón submit o Enter).
+         (ngSubmit) en vez de (click) en el botón evita reimplementar
+         el "enviar con Enter" a mano. -->
+    <form (ngSubmit)="guardar()" class="formulario">
+
+      <div class="fila">
+        <label>
+          Nombre *
+          <!-- [(ngModel)] es two-way binding: el input lee form.nombre para
+               pintarse, y cualquier tecleo actualiza form.nombre al instante.
+               "name" es obligatorio para que Angular pueda rastrear el campo
+               dentro del formulario. -->
+          <input [(ngModel)]="form.nombre" name="nombre" required />
+        </label>
+        <label>
+          Apellido *
+          <input [(ngModel)]="form.apellido" name="apellido" required />
+        </label>
+      </div>
+
+      <div class="fila">
+        <label>
+          DNI *
+          <input [(ngModel)]="form.dni" name="dni" required />
+        </label>
+        <label>
+          Teléfono *
+          <input [(ngModel)]="form.telefono" name="telefono" required />
+        </label>
+      </div>
+
+      <label class="campo-ancho">
+        Correo electrónico *
+        <input [(ngModel)]="form.email" name="email" type="email" required />
+      </label>
+
+      <label class="campo-ancho">
+        Contraseña inicial *
+        <input [(ngModel)]="form.passwordTemporal" name="passwordTemporal" type="password" required />
+      </label>
+      <p class="ayuda">El voluntario deberá cambiarla en su primer inicio de sesión.</p>
+
+      <div class="fila">
+        <label>
+          Rol *
+          <select [(ngModel)]="form.rol" name="rol" required>
+            <option [ngValue]="null" disabled>Selecciona un rol</option>
+            @for (r of roles; track r) {
+              <option [ngValue]="r">{{ r }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          Nivel de seguridad *
+          <select [(ngModel)]="form.nivelSeguridad" name="nivelSeguridad" required>
+            <option [ngValue]="null" disabled>Selecciona un nivel</option>
+            @for (n of niveles; track n) {
+              <option [ngValue]="n">{{ n }}</option>
+            }
+          </select>
+        </label>
+      </div>
+
+      @if (errorServidor) {
+        <p class="error-servidor">{{ errorServidor }}</p>
+      }
+
+      <div class="acciones-form">
+        <button type="button" class="boton-secundario" (click)="cerrar()">Cancelar</button>
+        <button type="submit" class="boton-primario" [disabled]="enviando">
+          {{ enviando ? 'Guardando...' : 'Guardar cuenta' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
